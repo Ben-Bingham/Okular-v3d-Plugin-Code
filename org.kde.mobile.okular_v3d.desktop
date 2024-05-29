@@ -1,5 +1,5 @@
 [Desktop Entry]
-MimeType=text/x-vertdata;
+MimeType=text/x-v3d;
 Name=Reader
 GenericName=Document viewer
 Comment=Viewer for various types of documents
@@ -11,5 +11,5 @@ Type=Application
 Categories=Qt;KDE;Graphics;Office;Viewer;
 InitialPreference=2
 NoDisplay=true
-X-KDE-Keywords=vertex
+X-KDE-Keywords=v3d
 X-KDE-AliasFor=org.kde.okular.kirigami.desktop

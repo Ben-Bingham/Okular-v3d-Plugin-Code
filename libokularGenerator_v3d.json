@@ -10,9 +10,9 @@
         "Description": "Vertex Data backend",
         "License": "GPL",
         "MimeTypes": [
-            "text/x-vertdata"
+            "text/x-v3d"
         ],
-        "Name": "VertexData Backend",
+        "Name": "v3d Backend",
         "Version": "0.1"
     },
     "X-KDE-Priority": 1,

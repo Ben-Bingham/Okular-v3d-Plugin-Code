@@ -1,14 +1,12 @@
 [Desktop Entry]
-MimeType=text/x-vertdata;
+MimeType=text/x-v3d;
 Terminal=false
-Name=Okular
+Name=okular
 GenericName=Document Viewer
-Comment=Universal document viewer
 Exec=okular %U
 Icon=okular
 Type=Application
-InitialPreference=3
+InitialPreference=7
 Categories=Qt;KDE;Graphics;Viewer;
 NoDisplay=true
-X-KDE-Keywords=vertex
-X-KDE-AliasFor=org.kde.okular.desktop
+X-KDE-Keywords=v3d

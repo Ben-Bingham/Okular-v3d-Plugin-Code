@@ -4,31 +4,28 @@
 
     SPDX-License-Identifier: GPL-2.0-or-later
 
-    Code has been modified by Benjamin Bingham to become: vertex_data_generator
+    Code has been modified by Benjamin Bingham to become: v3d_generator
 */
-#ifndef _VERTEX_DATA_GENERATOR_TXT_H_
-#define _VERTEX_DATA_GENERATOR_TXT_H_
+#pragma once
 
 #include <core/textdocumentgenerator.h>
 
 #include "renderheadless.h"
 
-class VertexDataGenerator : public Okular::Generator {
+class V3dGenerator : public Okular::Generator {
     Q_OBJECT
     Q_INTERFACES(Okular::Generator)
 
 public:
-    VertexDataGenerator(QObject *parent, const QVariantList &args);
-    ~VertexDataGenerator() override;
+    V3dGenerator(QObject *parent, const QVariantList &args);
+    ~V3dGenerator() override;
 
     void generatePixmap(Okular::PixmapRequest* request) override;
     bool loadDocument(const QString &fileName, QVector<Okular::Page*> &pages) override;
     bool doCloseDocument() override;
 
 private:
-    static int m_VertexDataGeneratorCount;
+    static int m_V3dGeneratorCount;
 
     HeadlessRenderer* m_HeadlessRenderer;
 };
-
-#endif

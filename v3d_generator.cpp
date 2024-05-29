@@ -4,11 +4,11 @@
 
     SPDX-License-Identifier: GPL-2.0-or-later
 
-    Code has been modified by Benjamin Bingham to become: vertex_data_generator
+    Code has been modified by Benjamin Bingham to become: v3d_generator
 */
 #include <iostream>
 
-#include "vertex_data_generator.h"
+#include "v3d_generator.h"
 #include <QPainter>
 #include <QAbstractTextDocumentLayout>
 #include <KAboutData>
@@ -23,38 +23,36 @@
 #include <core/textdocumentgenerator.h>
 #include <core/textdocumentgenerator_p.h>
 
-OKULAR_EXPORT_PLUGIN(VertexDataGenerator, "libokularGenerator_vertex_data.json")
+OKULAR_EXPORT_PLUGIN(V3dGenerator, "libokularGenerator_v3d.json")
 
 void error_callback(int error, const char* description) {
     std::cout << "GLFW Error[" << error << "]:" << description << std::endl;
 }
 
-VertexDataGenerator::VertexDataGenerator(QObject *parent, const QVariantList &args) {
+V3dGenerator::V3dGenerator(QObject *parent, const QVariantList &args) {
     Q_UNUSED(parent);
     Q_UNUSED(args);
     
-    if (m_VertexDataGeneratorCount == 0) {
-        m_HeadlessRenderer = new HeadlessRenderer{ "/home/benjaminb/kde/src/okular/generators/Vertex-Data-Plugin-Code/Headless-Vulkan-Renderer/shaders/" };
-        // m_HeadlessRenderer->setupRenderer();
+    if (m_V3dGeneratorCount == 0) {
+        m_HeadlessRenderer = new HeadlessRenderer{ "/home/benjaminb/kde/src/okular/generators/Okular-v3d-Plugin/Headless-Vulkan-Renderer/shaders/" };
     }
 
-    m_VertexDataGeneratorCount++;
+    m_V3dGeneratorCount++;
 }
 
-VertexDataGenerator::~VertexDataGenerator() {
-    if (m_VertexDataGeneratorCount == 1) {
-        // m_HeadlessRenderer->shutdownRenderer();
+V3dGenerator::~V3dGenerator() {
+    if (m_V3dGeneratorCount == 1) {
         delete m_HeadlessRenderer;
     }
 
-    m_VertexDataGeneratorCount--;
+    m_V3dGeneratorCount--;
 }
 
-bool VertexDataGenerator::doCloseDocument() {
+bool V3dGenerator::doCloseDocument() {
     return true;
 }
 
-bool VertexDataGenerator::loadDocument(const QString &fileName, QVector<Okular::Page *> &pagesVector) {
+bool V3dGenerator::loadDocument(const QString &fileName, QVector<Okular::Page *> &pagesVector) {
     std::ifstream file(fileName.toStdString());
     std::string str;
     std::string content;
@@ -74,7 +72,7 @@ bool VertexDataGenerator::loadDocument(const QString &fileName, QVector<Okular::
     return true;
 }
 
-void VertexDataGenerator::generatePixmap(Okular::PixmapRequest* request) {
+void V3dGenerator::generatePixmap(Okular::PixmapRequest* request) {
     std::string content = request->page()->text().toStdString();
 
     std::string delimeter = "\n";
@@ -134,6 +132,6 @@ void VertexDataGenerator::generatePixmap(Okular::PixmapRequest* request) {
     signalPixmapRequestDone(request);
 }
 
-int VertexDataGenerator::m_VertexDataGeneratorCount{ 0 };
+int V3dGenerator::m_V3dGeneratorCount{ 0 };
 
-#include "vertex_data_generator.moc"
+#include "v3d_generator.moc"
