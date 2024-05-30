@@ -6,7 +6,7 @@ include_directories("Headless-Vulkan-Renderer/src/" "Headless-Vulkan-Renderer/de
 add_compile_options(-fexceptions)
 
 ########### next target ###############
-set(okularGenerator_v3d_SRCS v3d_generator.cpp HelloTriangleApplication.cpp Headless-Vulkan-Renderer/src/renderheadless.cpp Headless-Vulkan-Renderer/dependencies/VulkanTools.cpp)
+set(okularGenerator_v3d_SRCS v3d_generator.cpp Headless-Vulkan-Renderer/src/renderheadless.cpp Headless-Vulkan-Renderer/dependencies/VulkanTools.cpp)
 
 okular_add_generator(okularGenerator_v3d ${okularGenerator_v3d_SRCS})
 
