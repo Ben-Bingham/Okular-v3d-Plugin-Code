@@ -1,16 +1,16 @@
 remove_definitions(-DTRANSLATION_DOMAIN="okular")
 add_definitions(-DTRANSLATION_DOMAIN="okular_v3d" -DGLFW_INCLUDE_VULKAN -DVULKAN_DEBUG)
 
-include_directories("Headless-Vulkan-Renderer/src/" "Headless-Vulkan-Renderer/dependencies/")
+include_directories("Headless-Vulkan-Renderer/src/" "Headless-Vulkan-Renderer/dependencies/" "/usr/include/tirpc")
 
 add_compile_options(-fexceptions)
 
 ########### next target ###############
-set(okularGenerator_v3d_SRCS v3d_generator.cpp Headless-Vulkan-Renderer/src/renderheadless.cpp Headless-Vulkan-Renderer/dependencies/VulkanTools.cpp)
+set(okularGenerator_v3d_SRCS src/v3d_generator.cpp Headless-Vulkan-Renderer/src/renderheadless.cpp Headless-Vulkan-Renderer/dependencies/VulkanTools.cpp src/V3dFile/V3dFile.cpp src/V3dFile/V3dObjects.cpp src/V3dFile/V3dObject.cpp)
 
 okular_add_generator(okularGenerator_v3d ${okularGenerator_v3d_SRCS})
 
-target_link_libraries(okularGenerator_v3d okularcore Qt5::Core KF5::I18n GLEW glfw GL vulkan dl pthread X11 Xxf86vm Xrandr Xi)
+target_link_libraries(okularGenerator_v3d okularcore Qt5::Core KF5::I18n GLEW glfw GL vulkan dl pthread X11 Xxf86vm Xrandr Xi tirpc)
 
 #list( APPEND CMAKE_INSTALL_RPATH "/usr/lib/dependencies" )
 set_target_properties(okularGenerator_v3d

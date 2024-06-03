@@ -22,6 +22,11 @@
 
 #include <core/textdocumentgenerator.h>
 #include <core/textdocumentgenerator_p.h>
+#include <QApplication>
+#include <QtWidgets>
+#include <QPushButton>
+
+#include "V3dFile/V3dFile.h"
 
 OKULAR_EXPORT_PLUGIN(V3dGenerator, "libokularGenerator_v3d.json")
 
@@ -52,19 +57,11 @@ bool V3dGenerator::doCloseDocument() {
     return true;
 }
 
-bool V3dGenerator::loadDocument(const QString &fileName, QVector<Okular::Page *> &pagesVector) {
-    std::ifstream file(fileName.toStdString());
-    std::string str;
-    std::string content;
-    while (std::getline(file, str)) {
-        content += str;
-        content += '\n';
-    }
-
+bool V3dGenerator::loadDocument(const QString &fileName, QVector<Okular::Page *> &pagesVector) { // TODO load document here instead of generatePixmap
     Okular::Page* page = new Okular::Page(0, 1000, 1000, Okular::Rotation0);
 
     Okular::TextPage* txtPage = new Okular::TextPage{};
-    txtPage->append(QString::fromStdString(content), new Okular::NormalizedRect( QRect(0.0, 0.2, 0.2, 0.2), 0.2, 0.2 ));
+    txtPage->append(fileName, new Okular::NormalizedRect( QRect(0.0, 0.2, 0.2, 0.2), 0.2, 0.2 ));
     page->setTextPage(txtPage);
 
     pagesVector.append(page);
@@ -88,74 +85,106 @@ std::vector<std::string> split(std::string s, std::string delimiter) {
 }
 
 std::vector<float> parseContent(const std::string& content) {
-    std::vector<std::string> lines = split(content, std::string{ '\n' });
+    // std::vector<float> vertices{
+    //     -0.5f, -0.5f, 0.0f,
+    //     0.5f, -0.5f, 0.0f,
+    //     0.0f, 0.5f, 0.0f
+    // };
 
-    double version = std::stod(lines[0]);
-    lines.erase(lines.begin());
+    // std::vector<float> vertices{
+    //     0.199099f,
+    //     0.257729f,
+    //     -6.70361f,
+    //     -0.414842f,
+    //     -0.00357958f,
+    //     -5.95876f,
+    //     0.37451f,
+    //     -0.20682f,
+    //     -5.37944f
+    // };
 
-    bool doublePrecision = false;
-    if (std::stoi(lines[0])) {
-        doublePrecision = true;
-    }
-    lines.erase(lines.begin());
+    std::vector<float> vertices{
+        0.199099f,
+        0.257729f,
+        0.0f,
+        -0.414842f,
+        -0.00357958f,
+        0.0f,
+        0.37451f,
+        -0.20682f,
+        0.0f
+    };
 
-    std::cout << "Length: " << lines.size() << std::endl;
+    // std::vector<std::string> lines = split(content, std::string{ '\n' });
+    // std::cout << "Length: " << lines.size() << std::endl;
 
-    std::vector<float> vertices{};
+    // double version = std::stod(lines[0]);
+    // lines.erase(lines.begin());
 
-    for (auto it = lines.begin(); it != lines.end(); ++it) {
-        std::cout << *it << std::endl;
-        // switch (std::stoi(*it)) {
-        // case 65:
-            double v1x = std::stod(it[0]);
-            double v1y = std::stod(it[1]);
-            double v1z = std::stod(it[2]);
+    // bool doublePrecision = false;
+    // if (std::stoi(lines[0])) {
+    //     doublePrecision = true;
+    // }
+    // lines.erase(lines.begin());
 
-            double v2x = std::stod(it[3]);
-            double v2y = std::stod(it[4]);
-            double v2z = std::stod(it[5]);
+    // std::cout << "Length: " << lines.size() << std::endl;
 
-            double v3x = std::stod(it[6]);
-            double v3y = std::stod(it[7]);
-            double v3z = std::stod(it[8]);
 
-            vertices.push_back(v1x);
-            vertices.push_back(v1y);
-            vertices.push_back(v1z);
+    // for (auto it = lines.begin(); it != lines.end(); ++it) {
+    //     std::cout << *it << std::endl;
+    //     // switch (std::stoi(*it)) {
+    //     // case 65:
+    //         double v1x = std::stod(it[0]);
+    //         double v1y = std::stod(it[1]);
+    //         double v1z = std::stod(it[2]);
 
-            vertices.push_back(v2x);
-            vertices.push_back(v2y);
-            vertices.push_back(v2z);
+    //         double v2x = std::stod(it[3]);
+    //         double v2y = std::stod(it[4]);
+    //         double v2z = std::stod(it[5]);
 
-            vertices.push_back(v3x);
-            vertices.push_back(v3y);
-            vertices.push_back(v3z);
+    //         double v3x = std::stod(it[6]);
+    //         double v3y = std::stod(it[7]);
+    //         double v3z = std::stod(it[8]);
 
-            // std::cout << std::stoi(it[9]) << std::endl;
-            // std::cout << std::stoi(it[10]) << std::endl;
+    //         vertices.push_back(v1x);
+    //         vertices.push_back(v1y);
+    //         vertices.push_back(v1z);
+
+    //         vertices.push_back(v2x);
+    //         vertices.push_back(v2y);
+    //         vertices.push_back(v2z);
+
+    //         vertices.push_back(v3x);
+    //         vertices.push_back(v3y);
+    //         vertices.push_back(v3z);
+
+    //         // std::cout << std::stoi(it[9]) << std::endl;
+    //         // std::cout << std::stoi(it[10]) << std::endl;
             
-            // unsigned int centerIndex = (unsigned int)std::stoi(it[9]);
-            // unsigned int materialIndex = (unsigned int)std::stoi(it[10]);
+    //         // unsigned int centerIndex = (unsigned int)std::stoi(it[9]);
+    //         // unsigned int materialIndex = (unsigned int)std::stoi(it[10]);
 
-            for (int i = 0; i < 11; ++i) {
-                it = lines.erase(lines.begin());
-            }
-            break;
-        // }
-    }
+    //         for (int i = 0; i < 11; ++i) {
+    //             it = lines.erase(lines.begin());
+    //         }
+    //         break;
+    //     // }
+    // }
 
-    std::cout << vertices.size() << std::endl;
-    for (auto val : vertices) {
-        std::cout << val << std::endl;
-    }
+    // std::cout << vertices.size() << std::endl;
+    // for (auto val : vertices) {
+    //     std::cout << val << std::endl;
+    // }
 
     return vertices;
 }
 
 void V3dGenerator::generatePixmap(Okular::PixmapRequest* request) {
-    std::string content = request->page()->text().toStdString();
+    std::string fileName = request->page()->text().toStdString();
 
-    std::vector<float> vertices = parseContent(content);
+    V3dFile file{fileName};
+
+    std::vector<float> vertices = file.vertices;
 
     int width = request->width();
     int height = request->height();
