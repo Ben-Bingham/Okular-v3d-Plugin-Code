@@ -8,63 +8,128 @@
 #include "xstream.h"
 
 V3dFile::V3dFile(const std::string& fileName) {
-    std::ifstream file(fileName);
-    std::string str;
+    xdr::ixstream xdrFile{ fileName.c_str() };
 
-    std::queue<std::string> lines;
+    xdrFile >> versionNumber;
+    xdrFile >> doublePrecisionFlag;
 
-    while (std::getline(file, str)) {
-        lines.push(str);
-    }
+    // std::cout << "==========================================" << std::endl;
+    // UINT data;
+    // while (xdrFile >> data) {
+    //     std::cout << data << std::endl;
+    // }
+    // std::cout << "==========================================" << std::endl;
 
-    versionNumber = std::stoul(lines.front());
-    lines.pop();
-    doublePrecisionFlag = std::stoul(lines.front());
-    lines.pop();
-
-    while (!lines.empty()) {
-        UINT objectType = std::stoul(lines.front());
-        lines.pop();
-
+    UINT objectType;
+    while (xdrFile >> objectType) {
         switch (objectType) {
         default:
             std::cout << "UNKNOWN TYPE: " << objectType << std::endl;
             break;
 
-        case ObjectTypes::TRIANGLE:
-            std::unique_ptr<V3dStraightTriangle> object = std::make_unique<V3dStraightTriangle>();
-
-            object->vertices[0].x = std::stod(lines.front());
-            lines.pop();
-            object->vertices[0].y = std::stod(lines.front());
-            lines.pop();
-            object->vertices[0].z = std::stod(lines.front());
-            lines.pop();
-
-            object->vertices[1].x = std::stod(lines.front());
-            lines.pop();
-            object->vertices[1].y = std::stod(lines.front());
-            lines.pop();
-            object->vertices[1].z = std::stod(lines.front());
-            lines.pop();
-
-            object->vertices[2].x = std::stod(lines.front());
-            lines.pop();
-            object->vertices[2].y = std::stod(lines.front());
-            lines.pop();
-            object->vertices[2].z = std::stod(lines.front());
-            lines.pop();
-
-            object->centerIndex = std::stoul(lines.front());
-            lines.pop();
-
-            object->materialIndex = std::stoul(lines.front());
-            lines.pop();
-
-            m_Objects.push_back(std::move(object));
+        case ObjectTypes::MATERIAL:
+            m_Objects.push_back(std::move(std::make_unique<V3dMaterial>(xdrFile)));
             break;
-        };
+
+        case ObjectTypes::TRANSFORM:
+            std::cout << "ERROR: No current way to store v3d object: TRANSFORM" << std::endl;
+            break;
+
+        case ObjectTypes::ELEMENT:
+            std::cout << "ERROR: No current way to store v3d object: ELEMENT" << std::endl;
+            break;
+
+        case ObjectTypes::CENTERS:
+            m_Objects.push_back(std::move(std::make_unique<V3dCenters>(xdrFile)));
+            break;
+
+        case ObjectTypes::HEADER:
+            m_Objects.push_back(std::move(std::make_unique<V3dHeader>(xdrFile)));
+            break;
+
+        case ObjectTypes::LINE:
+            m_Objects.push_back(std::move(std::make_unique<V3dLineSegment>(xdrFile)));
+            break;
+
+        case ObjectTypes::TRIANGLE:
+            m_Objects.push_back(std::move(std::make_unique<V3dStraightTriangle>(xdrFile)));
+            break;
+
+        case ObjectTypes::QUAD:
+            m_Objects.push_back(std::move(std::make_unique<V3dStraightPlanarQuad>(xdrFile)));
+            break;
+
+        case ObjectTypes::CURVE:
+            m_Objects.push_back(std::move(std::make_unique<V3dBezierCurve>(xdrFile)));
+            break;
+
+        case ObjectTypes::BEZIER_TRIANGLE:
+            m_Objects.push_back(std::move(std::make_unique<V3dBezierTriangle>(xdrFile)));
+            break;
+
+        case ObjectTypes::BEZIER_PATCH:
+            m_Objects.push_back(std::move(std::make_unique<V3dBezierPatch>(xdrFile)));
+            break;
+
+        case ObjectTypes::LINE_COLOR:
+            std::cout << "ERROR: No current way to store v3d object: LINE_COLOR" << std::endl;
+            break;
+
+        case ObjectTypes::TRIANGLE_COLOR:
+            m_Objects.push_back(std::move(std::make_unique<V3dStraightTriangleWithCornerColors>(xdrFile)));
+            break;
+
+        case ObjectTypes::QUAD_COLOR:
+            m_Objects.push_back(std::move(std::make_unique<V3dStraightPlanarQuadWithCornderColors>(xdrFile)));
+            break;
+
+        case ObjectTypes::CURVE_COLOR:
+            std::cout << "ERROR: No current way to store v3d object: CURVE_COLOR" << std::endl;
+            break;
+
+        case ObjectTypes::BEZIER_TRIANGLE_COLOR:
+            m_Objects.push_back(std::move(std::make_unique<V3dBezierTriangleWithCornerColors>(xdrFile)));
+            break;
+
+        case ObjectTypes::BEZIER_PATCH_COLOR:
+            m_Objects.push_back(std::move(std::make_unique<V3dBezierPatchWithCornerColors>(xdrFile)));
+            break;
+
+        case ObjectTypes::TRIANGLES:
+            m_Objects.push_back(std::move(std::make_unique<V3dTriangleGroup>(xdrFile)));
+            break;
+
+        case ObjectTypes::DISK:
+            m_Objects.push_back(std::move(std::make_unique<V3dDisk>(xdrFile)));
+            break;
+
+        case ObjectTypes::CYLINDER:
+            m_Objects.push_back(std::move(std::make_unique<V3dCylinder>(xdrFile)));
+            break;
+
+        case ObjectTypes::TUBE:
+            m_Objects.push_back(std::move(std::make_unique<V3dTube>(xdrFile)));
+            break;
+
+        case ObjectTypes::SPHERE:
+            m_Objects.push_back(std::move(std::make_unique<V3dSphere>(xdrFile)));
+            break;
+
+        case ObjectTypes::HALF_SPHERE:
+            m_Objects.push_back(std::move(std::make_unique<V3dHemiSphere>(xdrFile)));
+            break;
+
+        case ObjectTypes::ANIMATION:
+            std::cout << "ERROR: No current way to store v3d object: ANIMATION" << std::endl;
+            break;
+
+        case ObjectTypes::PIXEL:
+            m_Objects.push_back(std::move(std::make_unique<V3dPixel>(xdrFile)));
+            break;
+        }
     }
+
+    xdrFile.close();
 
     std::vector<float> vertices;
 
