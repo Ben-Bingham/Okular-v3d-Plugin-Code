@@ -210,14 +210,14 @@ public:
 
     UINT nI;
     UINT nP;
-    std::vector<TRIPLE> vertexPositions; // size is nP
+    std::vector<TRIPLE> vertexPositions;        // size is nP
     UINT nN;
-    std::vector<TRIPLE> vertexNormalArray; // size is nN
+    std::vector<TRIPLE> vertexNormalArray;      // size is nN
     BOOL explicitNI;
     UINT nC;
-    std::vector<RGBA> vertexColorArray; // size is nC
+    std::vector<RGBA> vertexColorArray;         // size is nC
     BOOL explicitCI;
-    std::vector<Index> indices; // size is nI;
+    std::vector<Index> indices;                 // size is nI;
     UINT centerIndex;
     UINT materialIndex;
 };
