@@ -14,6 +14,8 @@ HeadlessRenderer::HeadlessRenderer(std::string shaderPath)
 HeadlessRenderer::~HeadlessRenderer() {
 	vkDestroyBuffer(device, vertexBuffer, nullptr);
 	vkFreeMemory(device, vertexMemory, nullptr);
+	vkDestroyBuffer(device, indexBuffer, nullptr);
+	vkFreeMemory(device, indexMemory, nullptr);
 	vkDestroyImageView(device, colorAttachment.view, nullptr);
 	vkDestroyImage(device, colorAttachment.image, nullptr);
 	vkFreeMemory(device, colorAttachment.memory, nullptr);
@@ -128,6 +130,7 @@ void HeadlessRenderer::createInstance() {
 	const char* validationLayers[] = { "VK_LAYER_KHRONOS_validation" };
 
 	std::vector<const char*> instanceExtensions = {};
+
 #if VULKAN_DEBUG
 	// Check if layers are available
 	uint32_t instanceLayerCount;
@@ -217,8 +220,6 @@ void HeadlessRenderer::createLogicalDevice(VkDeviceQueueCreateInfo* queueCreateI
 	VK_CHECK_RESULT(vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device));
 }
 
-
-
 void HeadlessRenderer::copyVertexDataToGPU(const std::vector<float>& vertices) {
 	const VkDeviceSize vertexBufferSize = vertices.size() * sizeof(float);
 
@@ -258,6 +259,48 @@ void HeadlessRenderer::copyVertexDataToGPU(const std::vector<float>& vertices) {
 
 	vkDestroyBuffer(device, stagingBuffer, nullptr);
 	vkFreeMemory(device, stagingMemory, nullptr);	
+}
+
+void HeadlessRenderer::copyIndexDataToGPU(const std::vector<unsigned int>& indices) {
+	const VkDeviceSize indexBufferSize = indices.size() * sizeof(unsigned int);
+
+	VkBuffer stagingBuffer;
+	VkDeviceMemory stagingMemory;
+
+	// Command buffer for copy commands (reused)
+	VkCommandBufferAllocateInfo cmdBufAllocateInfo = vks::initializers::commandBufferAllocateInfo(commandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY, 1);
+	VkCommandBuffer copyCmd;
+	VK_CHECK_RESULT(vkAllocateCommandBuffers(device, &cmdBufAllocateInfo, &copyCmd));
+	VkCommandBufferBeginInfo cmdBufInfo = vks::initializers::commandBufferBeginInfo();
+
+	// Indices
+	createBuffer(
+		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+		&stagingBuffer,
+		&stagingMemory,
+		indexBufferSize,
+		(void*)indices.data()
+	);
+
+	createBuffer(
+		VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+		&indexBuffer,
+		&indexMemory,
+		indexBufferSize
+	);
+
+	VK_CHECK_RESULT(vkBeginCommandBuffer(copyCmd, &cmdBufInfo));
+	VkBufferCopy copyRegion = {};
+	copyRegion.size = indexBufferSize;
+	vkCmdCopyBuffer(copyCmd, stagingBuffer, indexBuffer, 1, &copyRegion);
+	VK_CHECK_RESULT(vkEndCommandBuffer(copyCmd));
+
+	submitWork(copyCmd, queue);
+
+	vkDestroyBuffer(device, stagingBuffer, nullptr);
+	vkFreeMemory(device, stagingMemory, nullptr);
 }
 
 void HeadlessRenderer::createAttachments(VkFormat colorFormat, VkFormat depthFormat, int targetWidth, int targetHeight) {
@@ -532,8 +575,10 @@ void HeadlessRenderer::recordCommandBuffer(int targetWidth, int targetHeight) {
 	// Render scene
 	VkDeviceSize offsets[1] = { 0 };
 	vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer, offsets);
+	vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-	vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+	// vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+	vkCmdDrawIndexed(commandBuffer, 3, 1, 0, 0, 0);
 
 	vkCmdEndRenderPass(commandBuffer);
 
@@ -654,7 +699,7 @@ unsigned char* HeadlessRenderer::copyToHost(int targetWidth, int targetHeight, V
 	return returnData;
 }
 
-unsigned char* HeadlessRenderer::render(int targetWidth, int targetHeight, VkSubresourceLayout* imageSubresourceLayout, const std::vector<float>& vertices) {
+unsigned char* HeadlessRenderer::render(int targetWidth, int targetHeight, VkSubresourceLayout* imageSubresourceLayout, const std::vector<float>& vertices, const std::vector<unsigned int>& indices) {
 	createInstance();
 	createPhysicalDevice();
 
@@ -673,6 +718,7 @@ unsigned char* HeadlessRenderer::render(int targetWidth, int targetHeight, VkSub
 	VK_CHECK_RESULT(vkCreateCommandPool(device, &cmdPoolInfo, nullptr, &commandPool));
 
 	copyVertexDataToGPU(vertices);
+	copyIndexDataToGPU(indices);
 
 	VkFormat colorFormat = VK_FORMAT_R8G8B8A8_UNORM;
 	VkFormat depthFormat;

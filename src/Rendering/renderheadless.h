@@ -47,8 +47,12 @@ public:
 	VkPipelineLayout pipelineLayout;
 	VkPipeline pipeline;
 	std::vector<VkShaderModule> shaderModules;
+
 	VkBuffer vertexBuffer;
 	VkDeviceMemory vertexMemory;
+
+	VkBuffer indexBuffer;
+	VkDeviceMemory indexMemory;
 
 	struct FrameBufferAttachment {
 		VkImage image;
@@ -73,6 +77,7 @@ private:
 	VkDeviceQueueCreateInfo requestGraphicsQueue();
 	void createLogicalDevice(VkDeviceQueueCreateInfo* queueCreateInfo);
 	void copyVertexDataToGPU(const std::vector<float>& vertices);
+	void copyIndexDataToGPU(const std::vector<unsigned int>& indices);
 	void createAttachments(VkFormat colorFormat, VkFormat depthFormat, int targetWidth, int targetHeight);
 	void createRenderPipeline(VkFormat colorFormat, VkFormat depthFormat, int targetWidth, int targetHeight);
 	void createGraphicsPipeline();
@@ -80,7 +85,7 @@ private:
 	unsigned char* copyToHost(int targetWidth, int targetHeight, VkSubresourceLayout* imageSubresourceLayout);
 
 public:
-	unsigned char* render(int targetWidth, int targetHeight, VkSubresourceLayout* imageSubresourceLayout, const std::vector<float>& vertices);
+	unsigned char* render(int targetWidth, int targetHeight, VkSubresourceLayout* imageSubresourceLayout, const std::vector<float>& vertices, const std::vector<unsigned int>& indices);
 
 	uint32_t getMemoryTypeIndex(uint32_t typeBits, VkMemoryPropertyFlags properties);
 
