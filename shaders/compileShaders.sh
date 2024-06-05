@@ -1,3 +1,3 @@
 #!/bin/bash
-glslc helloTriangle.vert -o vert.spv
-glslc helloTriangle.frag -o frag.spv
+glslc triangle.frag -o triangle.frag.spv
+glslc triangle.vert -o triangle.vert.spv

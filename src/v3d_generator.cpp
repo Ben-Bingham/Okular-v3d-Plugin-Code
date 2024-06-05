@@ -39,7 +39,7 @@ V3dGenerator::V3dGenerator(QObject *parent, const QVariantList &args) {
     Q_UNUSED(args);
     
     if (m_V3dGeneratorCount == 0) {
-        m_HeadlessRenderer = new HeadlessRenderer{ "/home/benjaminb/kde/src/okular/generators/Okular-v3d-Plugin-Code/Headless-Vulkan-Renderer/shaders/" };
+        m_HeadlessRenderer = new HeadlessRenderer{ "/home/benjaminb/kde/src/okular/generators/Okular-v3d-Plugin-Code/shaders/" };
     }
 
     m_V3dGeneratorCount++;
