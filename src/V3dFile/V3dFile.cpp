@@ -28,7 +28,27 @@ V3dFile::V3dFile(const std::string& fileName) {
             break;
 
         case ObjectTypes::MATERIAL:
-            m_Objects.push_back(std::move(std::make_unique<V3dMaterial>(xdrFile)));
+            V3dMaterial material;
+            xdrFile >> material.diffuse.r;
+            xdrFile >> material.diffuse.g;
+            xdrFile >> material.diffuse.b;
+            xdrFile >> material.diffuse.a;
+
+            xdrFile >> material.emissive.r;
+            xdrFile >> material.emissive.g;
+            xdrFile >> material.emissive.b;
+            xdrFile >> material.emissive.a;
+
+            xdrFile >> material.specular.r;
+            xdrFile >> material.specular.g;
+            xdrFile >> material.specular.b;
+            xdrFile >> material.specular.a;
+
+            xdrFile >> material.shininess;
+            xdrFile >> material.metallic;
+            xdrFile >> material.fresnel0;
+
+            materials.push_back(material);
             break;
 
         case ObjectTypes::TRANSFORM:
@@ -40,7 +60,19 @@ V3dFile::V3dFile(const std::string& fileName) {
             break;
 
         case ObjectTypes::CENTERS:
-            m_Objects.push_back(std::move(std::make_unique<V3dCenters>(xdrFile)));
+            UINT centersLength;
+            xdrFile >> centersLength;
+
+            if (centersLength > 0) {
+                centers.resize(centersLength);
+
+                for (UINT i = 0; i < centersLength; ++i) {
+                    xdrFile >> centers[i].x;
+                    xdrFile >> centers[i].y;
+                    xdrFile >> centers[i].z;
+                }
+            }
+
             break;
 
         case ObjectTypes::HEADER:

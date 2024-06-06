@@ -28,52 +28,6 @@ V3dHeader::HeaderEntry::HeaderEntry(xdr::ixstream& xdrFile) {
     }
 }
 
-
-V3dCenters::V3dCenters(xdr::ixstream& xdrFile)
-    : V3dObject{ ObjectTypes::CENTERS } { 
-        xdrFile >> centersLength;
-
-        centers.resize(centersLength);
-
-        for (UINT i = 0; i < centersLength; ++i) {
-            xdrFile >> centers[i].x;
-            xdrFile >> centers[i].y;
-            xdrFile >> centers[i].z;
-        }
-    }
-
-std::vector<float> V3dCenters::getVertices() {
-    return std::vector<float>{};
-}
-
-
-V3dMaterial::V3dMaterial(xdr::ixstream& xdrFile)
-    : V3dObject{ ObjectTypes::MATERIAL } { 
-        xdrFile >> diffuse.r;
-        xdrFile >> diffuse.g;
-        xdrFile >> diffuse.b;
-        xdrFile >> diffuse.a;
-
-        xdrFile >> emissive.r;
-        xdrFile >> emissive.g;
-        xdrFile >> emissive.b;
-        xdrFile >> emissive.a;
-
-        xdrFile >> specular.r;
-        xdrFile >> specular.g;
-        xdrFile >> specular.b;
-        xdrFile >> specular.a;
-
-        xdrFile >> shininess;
-        xdrFile >> metallic;
-        xdrFile >> fresnel0;
-    }
-
-std::vector<float> V3dMaterial::getVertices() {
-    return std::vector<float>{};
-}
-
-
 V3dBezierPatch::V3dBezierPatch(xdr::ixstream& xdrFile)
     : V3dObject{ ObjectTypes::BEZIER_PATCH } { 
         for (int i = 0; i < 16; ++i) {

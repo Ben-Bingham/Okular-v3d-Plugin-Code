@@ -543,7 +543,7 @@ void HeadlessRenderer::recordCommandBuffer(int targetWidth, int targetHeight) {
 	VK_CHECK_RESULT(vkBeginCommandBuffer(commandBuffer, &cmdBufInfo));
 
 	VkClearValue clearValues[2];
-	clearValues[0].color = { { 1.0f, 0.0f, 0.0f, 1.0f } };
+	clearValues[0].color = { { 1.0f, 1.0f, 1.0f, 1.0f } };
 	clearValues[1].depthStencil = { 1.0f, 0 };
 
 	VkRenderPassBeginInfo renderPassBeginInfo = {};

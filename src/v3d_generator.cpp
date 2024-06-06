@@ -80,9 +80,10 @@ void V3dGenerator::generatePixmap(Okular::PixmapRequest* request) {
     int height = request->height();
     VkSubresourceLayout imageSubresourceLayout;
 
-    std::vector<unsigned int> indices = {
-		0, 1, 2
-	};
+    std::vector<unsigned int> indices{};
+    for (unsigned int i = 0; i < vertices.size(); ++i) {
+        indices.push_back(i);
+    }
 
     unsigned char* imageData = m_HeadlessRenderer->render(width, height, &imageSubresourceLayout, vertices, indices);
 

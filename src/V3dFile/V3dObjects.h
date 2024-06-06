@@ -49,6 +49,15 @@ enum ObjectTypes {
     PIXEL = 4096
 };
 
+struct V3dMaterial {
+    RGBA diffuse;
+    RGBA emissive;
+    RGBA specular;
+    FLOAT shininess;
+    FLOAT metallic;
+    FLOAT fresnel0;
+};
+
 class V3dHeader : public V3dObject {
 public:
     V3dHeader(xdr::ixstream& xdrFile);
@@ -67,32 +76,6 @@ public:
 
     UINT headerEntryCount;
     std::vector<HeaderEntry> entries;
-};
-
-class V3dCenters : public V3dObject {
-public:
-    V3dCenters(xdr::ixstream& xdrFile);
-    ~V3dCenters() override = default;
-
-    std::vector<float> getVertices() override;
-
-    UINT centersLength;
-    std::vector<TRIPLE> centers;
-};
-
-class V3dMaterial : public V3dObject {
-public:
-    V3dMaterial(xdr::ixstream& xdrFile);
-    ~V3dMaterial() override = default;
-
-    std::vector<float> getVertices() override;
-
-    RGBA diffuse;
-    RGBA emissive;
-    RGBA specular;
-    FLOAT shininess;
-    FLOAT metallic;
-    FLOAT fresnel0;
 };
 
 class V3dBezierPatch : public V3dObject {
