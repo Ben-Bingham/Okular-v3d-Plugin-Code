@@ -8,9 +8,12 @@
 */
 #pragma once
 
+#include <memory>
+
 #include <core/textdocumentgenerator.h>
 
 #include "renderheadless.h"
+#include "V3dFile/V3dFile.h"
 
 class V3dGenerator : public Okular::Generator {
     Q_OBJECT
@@ -28,4 +31,6 @@ private:
     static int m_V3dGeneratorCount;
 
     HeadlessRenderer* m_HeadlessRenderer;
+
+    std::unique_ptr<V3dFile> m_File{ nullptr };
 };

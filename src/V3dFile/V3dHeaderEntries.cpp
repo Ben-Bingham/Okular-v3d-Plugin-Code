@@ -32,7 +32,7 @@ const std::array<size_t, 20> g_HeaderEntries = {
     sizeof(REAL) / 4z,                   // Initial zoom
     sizeof(PAIR) / 4z,                   // Viewport shift (for perspective projection)
     sizeof(PAIR) / 4z,                   // Margin around viewport
-    sizeof(TRIPLE) + sizeof(RGB) / 4z,   // Direction and color of each point light source
+    (sizeof(TRIPLE) + sizeof(RGB)) / 4z,   // Direction and color of each point light source
     sizeof(RGBA) / 4z,                   // Background color
     sizeof(REAL) / 4z,                   // Zoom base factor
     sizeof(REAL) / 4z,                   // Zoom pinch factor

@@ -26,8 +26,6 @@
 #include <QtWidgets>
 #include <QPushButton>
 
-#include "V3dFile/V3dFile.h"
-
 OKULAR_EXPORT_PLUGIN(V3dGenerator, "libokularGenerator_v3d.json")
 
 void error_callback(int error, const char* description) {
@@ -58,11 +56,9 @@ bool V3dGenerator::doCloseDocument() {
 }
 
 bool V3dGenerator::loadDocument(const QString &fileName, QVector<Okular::Page *> &pagesVector) { // TODO load document here instead of generatePixmap
-    Okular::Page* page = new Okular::Page(0, 1000, 1000, Okular::Rotation0);
+    m_File = std::make_unique<V3dFile>(fileName.toStdString());
 
-    Okular::TextPage* txtPage = new Okular::TextPage{};
-    txtPage->append(fileName, new Okular::NormalizedRect(QRect(0.0, 0.2, 0.2, 0.2), 0.2, 0.2 ));
-    page->setTextPage(txtPage);
+    Okular::Page* page = new Okular::Page(0, 1000, 1000, Okular::Rotation0);
 
     pagesVector.append(page);
 
@@ -70,11 +66,7 @@ bool V3dGenerator::loadDocument(const QString &fileName, QVector<Okular::Page *>
 }
 
 void V3dGenerator::generatePixmap(Okular::PixmapRequest* request) {
-    std::string fileName = request->page()->text().toStdString();
-
-    V3dFile file{ fileName };
-
-    std::vector<float> vertices = file.vertices;
+    std::vector<float> vertices = m_File->vertices;
 
     int width = request->width();
     int height = request->height();

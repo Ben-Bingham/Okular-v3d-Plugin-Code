@@ -20,8 +20,11 @@ V3dFile::V3dFile(const std::string& fileName) {
     // }
     // std::cout << "==========================================" << std::endl;
 
+    std::cout << "Filename: " << fileName << std::endl;
+
     UINT objectType;
     while (xdrFile >> objectType) {
+        std::cout << "ObjectType: " << objectType << std::endl;
         switch (objectType) {
         default:
             std::cout << "UNKNOWN TYPE: " << objectType << std::endl;
