@@ -64,6 +64,7 @@ public:
     ~V3dHeader() override = default;
 
     std::vector<float> getVertices() override;
+    std::vector<unsigned int> getIndices() override;
 
     class HeaderEntry {
         public:
@@ -84,6 +85,7 @@ public:
     ~V3dBezierPatch() override = default;
 
     std::vector<float> getVertices() override;
+    std::vector<unsigned int> getIndices() override;
 
     std::array<TRIPLE, 16> controlPoints;
     UINT centerIndex;
@@ -96,6 +98,7 @@ public:
     ~V3dBezierTriangle() override = default;
 
     std::vector<float> getVertices() override;
+    std::vector<unsigned int> getIndices() override;
 
     std::array<TRIPLE, 10> controlPoints;
     UINT centerIndex;
@@ -108,6 +111,7 @@ public:
     ~V3dBezierPatchWithCornerColors() override = default;
 
     std::vector<float> getVertices() override;
+    std::vector<unsigned int> getIndices() override;
 
     std::array<TRIPLE, 16> controlPoints;
     UINT centerIndex;
@@ -121,6 +125,7 @@ public:
     ~V3dBezierTriangleWithCornerColors() override = default;
 
     std::vector<float> getVertices() override;
+    std::vector<unsigned int> getIndices() override;
 
     std::array<TRIPLE, 10> controlPoints;
     UINT centerIndex;
@@ -134,6 +139,7 @@ public:
     ~V3dStraightPlanarQuad() override = default;
 
     std::vector<float> getVertices() override;
+    std::vector<unsigned int> getIndices() override;
 
     std::array<TRIPLE, 4> vertices;
     UINT centerIndex;
@@ -146,6 +152,7 @@ public:
     ~V3dStraightTriangle() override = default;
 
     std::vector<float> getVertices() override;
+    std::vector<unsigned int> getIndices() override;
 
     std::array<TRIPLE, 3> vertices;
     UINT centerIndex;
@@ -158,6 +165,7 @@ public:
     ~V3dStraightPlanarQuadWithCornderColors() override = default;
 
     std::vector<float> getVertices() override;
+    std::vector<unsigned int> getIndices() override;
 
     std::array<TRIPLE, 4> vertices;
     UINT centerIndex;
@@ -171,6 +179,7 @@ public:
     ~V3dStraightTriangleWithCornerColors() override = default;
 
     std::vector<float> getVertices() override;
+    std::vector<unsigned int> getIndices() override;
 
     std::array<TRIPLE, 3> vertices;
     UINT centerIndex;
@@ -184,6 +193,7 @@ public:
     ~V3dTriangleGroup() override = default;
 
     std::vector<float> getVertices() override;
+    std::vector<unsigned int> getIndices() override;
 
     struct Index {
         std::array<UINT, 3> vertexPositionIndices;
@@ -211,6 +221,7 @@ public:
     ~V3dSphere() override = default;
 
     std::vector<float> getVertices() override;
+    std::vector<unsigned int> getIndices() override;
 
     TRIPLE center;
     REAL radius;
@@ -224,6 +235,7 @@ public:
     ~V3dHemiSphere() override = default;
 
     std::vector<float> getVertices() override;
+    std::vector<unsigned int> getIndices() override;
 
     TRIPLE center;
     REAL radius;
@@ -239,6 +251,7 @@ public:
     ~V3dDisk() override = default;
 
     std::vector<float> getVertices() override;
+    std::vector<unsigned int> getIndices() override;
 
     TRIPLE center;
     REAL radius;
@@ -254,6 +267,7 @@ public:
     ~V3dCylinder() override = default;
 
     std::vector<float> getVertices() override;
+    std::vector<unsigned int> getIndices() override;
 
     TRIPLE center;
     REAL radius;
@@ -270,6 +284,7 @@ public:
     ~V3dTube() override = default;
 
     std::vector<float> getVertices() override;
+    std::vector<unsigned int> getIndices() override;
 
     std::array<TRIPLE, 4> controlPoints;
     REAL width;
@@ -284,6 +299,7 @@ public:
     ~V3dBezierCurve() override = default;
 
     std::vector<float> getVertices() override;
+    std::vector<unsigned int> getIndices() override;
 
     std::array<TRIPLE, 4> controlPoints;
     UINT centerIndex;
@@ -296,6 +312,7 @@ public:
     ~V3dLineSegment() override = default;
 
     std::vector<float> getVertices() override;
+    std::vector<unsigned int> getIndices() override;
 
     std::array<TRIPLE, 2> endpoints;
     UINT centerIndex;
@@ -308,6 +325,7 @@ public:
     ~V3dPixel() override = default;
 
     std::vector<float> getVertices() override;
+    std::vector<unsigned int> getIndices() override;
 
     TRIPLE position;
     UINT centerIndex;

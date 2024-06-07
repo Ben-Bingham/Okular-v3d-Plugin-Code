@@ -81,7 +81,7 @@ private:
 	void createAttachments(VkFormat colorFormat, VkFormat depthFormat, int targetWidth, int targetHeight);
 	void createRenderPipeline(VkFormat colorFormat, VkFormat depthFormat, int targetWidth, int targetHeight);
 	void createGraphicsPipeline();
-	void recordCommandBuffer(int targetWidth, int targetHeight);
+	void recordCommandBuffer(int targetWidth, int targetHeight, size_t indexCount);
 	unsigned char* copyToHost(int targetWidth, int targetHeight, VkSubresourceLayout* imageSubresourceLayout);
 
 public:

@@ -531,7 +531,7 @@ void HeadlessRenderer::createGraphicsPipeline() {
 	VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineCreateInfo, nullptr, &pipeline));
 }
 
-void HeadlessRenderer::recordCommandBuffer(int targetWidth, int targetHeight) {	
+void HeadlessRenderer::recordCommandBuffer(int targetWidth, int targetHeight, size_t indexCount) {	
 	VkCommandBuffer commandBuffer;
 	VkCommandBufferAllocateInfo cmdBufAllocateInfo =
 		vks::initializers::commandBufferAllocateInfo(commandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY, 1);
@@ -577,8 +577,7 @@ void HeadlessRenderer::recordCommandBuffer(int targetWidth, int targetHeight) {
 	vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer, offsets);
 	vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-	// vkCmdDraw(commandBuffer, 3, 1, 0, 0);
-	vkCmdDrawIndexed(commandBuffer, 3, 1, 0, 0, 0);
+	vkCmdDrawIndexed(commandBuffer, indexCount, 1, 0, 0, 0);
 
 	vkCmdEndRenderPass(commandBuffer);
 
@@ -703,6 +702,17 @@ unsigned char* HeadlessRenderer::render(int targetWidth, int targetHeight, VkSub
 	createInstance();
 	createPhysicalDevice();
 
+	std::cout << "==================================" << std::endl;
+	for (auto val : vertices) {
+		std::cout << val << std::endl;
+	}
+	std::cout << "==================================" << std::endl;
+
+	for (auto val : indices) {
+		std::cout << val << std::endl;
+	}
+	std::cout << "==================================" << std::endl;
+
 	VkDeviceQueueCreateInfo queueCreateInfo = requestGraphicsQueue();
 
 	createLogicalDevice(&queueCreateInfo);
@@ -727,7 +737,7 @@ unsigned char* HeadlessRenderer::render(int targetWidth, int targetHeight, VkSub
 	createAttachments(colorFormat, depthFormat, targetWidth, targetHeight);
 	createRenderPipeline(colorFormat, depthFormat, targetWidth, targetHeight);
 	createGraphicsPipeline();
-	recordCommandBuffer(targetWidth, targetHeight);
+	recordCommandBuffer(targetWidth, targetHeight, indices.size());
 
 	unsigned char* returnData = copyToHost(targetWidth, targetHeight, imageSubresourceLayout);
 

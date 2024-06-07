@@ -13,6 +13,8 @@ V3dFile::V3dFile(const std::string& fileName) {
     xdrFile >> versionNumber;
     xdrFile >> doublePrecisionFlag;
 
+    std::cout << "Double Precision: " << doublePrecisionFlag << std::endl;
+
     // std::cout << "==========================================" << std::endl;
     // UINT data;
     // while (xdrFile >> data) {
@@ -166,15 +168,36 @@ V3dFile::V3dFile(const std::string& fileName) {
 
     xdrFile.close();
 
-    std::vector<float> vertices;
+
+    std::vector<float> outVertices;
 
     for (auto& object : m_Objects) {
         std::vector<float> vert = object->getVertices();
 
         for (auto& value : vert) {
-            vertices.push_back(value);
+            outVertices.push_back(value);
         }
     }
 
-    this->vertices = vertices;
+    this->vertices = outVertices;
+
+
+    std::vector<unsigned int> outIndices;
+
+    unsigned int lastHightestIndex = 0;
+    for (auto& object : m_Objects) {
+        std::vector<unsigned int> ind = object->getIndices();
+
+        for (auto& val : ind) {
+            outIndices.push_back(val + lastHightestIndex);
+        }
+
+        for (auto& val : ind) {
+            if (val >= lastHightestIndex) {
+                lastHightestIndex = val + 1;
+            }
+        }
+    }
+
+    this->indices = outIndices;
 }

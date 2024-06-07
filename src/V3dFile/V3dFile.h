@@ -15,4 +15,5 @@ public:
     std::vector<std::unique_ptr<V3dObject>> m_Objects;
 
     std::vector<float> vertices;
+    std::vector<unsigned int> indices;
 };

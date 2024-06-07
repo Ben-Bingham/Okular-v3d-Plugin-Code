@@ -14,8 +14,15 @@ V3dHeader::V3dHeader(xdr::ixstream& xdrFile)
     }
 
 std::vector<float> V3dHeader::getVertices() {
+    std::cout << "ERROR: V3dHeader cannot currently give vertices" << std::endl;
     return std::vector<float>{};
 }
+
+std::vector<unsigned int> V3dHeader::getIndices() {
+    std::cout << "ERROR: V3dHeader cannot currently give indices" << std::endl;
+    return std::vector<unsigned int>{};
+}
+
 
 V3dHeader::HeaderEntry::HeaderEntry(xdr::ixstream& xdrFile) {
     xdrFile >> headerKey;
@@ -45,6 +52,11 @@ std::vector<float> V3dBezierPatch::getVertices() {
     return std::vector<float>{};
 }
 
+std::vector<unsigned int> V3dBezierPatch::getIndices() {
+    std::cout << "ERROR: V3dBezierPatch cannot currently give indices" << std::endl;
+    return std::vector<unsigned int>{};
+}
+
 
 V3dBezierTriangle::V3dBezierTriangle(xdr::ixstream& xdrFile)
     : V3dObject{ ObjectTypes::BEZIER_TRIANGLE } { 
@@ -61,6 +73,11 @@ V3dBezierTriangle::V3dBezierTriangle(xdr::ixstream& xdrFile)
 std::vector<float> V3dBezierTriangle::getVertices() {
     std::cout << "ERROR: V3dBezierTriangle cannot currently give vertices" << std::endl;
     return std::vector<float>{};
+}
+
+std::vector<unsigned int> V3dBezierTriangle::getIndices() {
+    std::cout << "ERROR: V3dBezierTriangle cannot currently give indices" << std::endl;
+    return std::vector<unsigned int>{};
 }
 
 
@@ -88,6 +105,11 @@ std::vector<float> V3dBezierPatchWithCornerColors::getVertices() {
     return std::vector<float>{};
 }
 
+std::vector<unsigned int> V3dBezierPatchWithCornerColors::getIndices() {
+    std::cout << "ERROR: V3dBezierPatchWithCornerColors cannot currently give indices" << std::endl;
+    return std::vector<unsigned int>{};
+}
+
 
 V3dBezierTriangleWithCornerColors::V3dBezierTriangleWithCornerColors(xdr::ixstream& xdrFile)
     : V3dObject{ ObjectTypes::BEZIER_TRIANGLE_COLOR } { 
@@ -113,6 +135,11 @@ std::vector<float> V3dBezierTriangleWithCornerColors::getVertices() {
     return std::vector<float>{};
 }
 
+std::vector<unsigned int> V3dBezierTriangleWithCornerColors::getIndices() {
+    std::cout << "ERROR: V3dBezierTriangleWithCornerColors cannot currently give indices" << std::endl;
+    return std::vector<unsigned int>{};
+}
+
 
 V3dStraightPlanarQuad::V3dStraightPlanarQuad(xdr::ixstream& xdrFile)
     : V3dObject{ ObjectTypes::QUAD } {
@@ -129,6 +156,11 @@ V3dStraightPlanarQuad::V3dStraightPlanarQuad(xdr::ixstream& xdrFile)
 std::vector<float> V3dStraightPlanarQuad::getVertices() {
     std::cout << "ERROR: V3dStraightPlanarQuad cannot currently give vertices" << std::endl;
     return std::vector<float>{};
+}
+
+std::vector<unsigned int> V3dStraightPlanarQuad::getIndices() {
+    std::cout << "ERROR: V3dStraightPlanarQuad cannot currently give indices" << std::endl;
+    return std::vector<unsigned int>{};
 }
 
 
@@ -153,6 +185,14 @@ std::vector<float> V3dStraightTriangle::getVertices() {
         out.push_back(static_cast<float>(ver.y));
         out.push_back(0.0f);
     }
+
+    return out;
+}
+
+std::vector<unsigned int> V3dStraightTriangle::getIndices() {
+    std::vector<unsigned int> out {
+        0, 1, 2
+    };
 
     return out;
 }
@@ -182,6 +222,11 @@ std::vector<float> V3dStraightPlanarQuadWithCornderColors::getVertices() {
     return std::vector<float>{};
 }
 
+std::vector<unsigned int> V3dStraightPlanarQuadWithCornderColors::getIndices() {
+    std::cout << "ERROR: V3dStraightPlanarQuadWithCornderColors cannot currently give indices" << std::endl;
+    return std::vector<unsigned int>{};
+}
+
 
 V3dStraightTriangleWithCornerColors::V3dStraightTriangleWithCornerColors(xdr::ixstream& xdrFile)
     : V3dObject{ ObjectTypes::TRIANGLE_COLOR } { 
@@ -207,12 +252,23 @@ std::vector<float> V3dStraightTriangleWithCornerColors::getVertices() {
     return std::vector<float>{};
 }
 
+std::vector<unsigned int> V3dStraightTriangleWithCornerColors::getIndices() {
+    std::cout << "ERROR: V3dStraightTriangleWithCornerColors cannot currently give indices" << std::endl;
+    return std::vector<unsigned int>{};
+}
+
 
 V3dTriangleGroup::V3dTriangleGroup(xdr::ixstream& xdrFile)
     : V3dObject{ ObjectTypes::TRIANGLES } { 
-        xdrFile >> nI;
+        
 
+        nI = 0;
+        xdrFile >> nI;
+        std::cout << "nI: " << nI << std::endl;
+
+        nP = 0;
         xdrFile >> nP;
+        std::cout << "nP: " << nP << std::endl;
         vertexPositions.resize(nP);
         for (UINT i = 0; i < nP; ++i) {
             xdrFile >> vertexPositions[i].x;
@@ -220,7 +276,17 @@ V3dTriangleGroup::V3dTriangleGroup(xdr::ixstream& xdrFile)
             xdrFile >> vertexPositions[i].z;
         }
 
+
+        std::cout << "Printing vertex positions" << std::endl;
+        for (auto val : vertexPositions) {
+            std::cout << "X: " << val.x << ", Y: " << val.y << ", Z: " << val.z << std::endl;
+        }
+
+        std::cout << "===========================" << std::endl;
+
+        nN = 0;
         xdrFile >> nN;
+        std::cout << "nN: " << nN << std::endl;
         vertexNormalArray.resize(nN);
         for (UINT i = 0; i < nN; ++i) {
             xdrFile >> vertexNormalArray[i].x;
@@ -228,10 +294,15 @@ V3dTriangleGroup::V3dTriangleGroup(xdr::ixstream& xdrFile)
             xdrFile >> vertexNormalArray[i].z;
         }
 
+        std::cout << "Read in vertex normal array" << std::endl;
+
         xdrFile >> explicitNI;
+        std::cout << "ExplicitNi: " << explicitNI << std::endl;
 
         xdrFile >> nC;
+        std::cout << "nC: " << nC << std::endl;
         if (nC > 0) {
+            std::cout << "nC > 0" << std::endl;
             vertexColorArray.resize(nC);
             for (UINT i = 0; i < nC; ++i) {
                 xdrFile >> vertexColorArray[i].r;
@@ -241,8 +312,10 @@ V3dTriangleGroup::V3dTriangleGroup(xdr::ixstream& xdrFile)
             }
 
             xdrFile >> explicitCI;
+            std::cout << "explicitCI: " << explicitCI << std::endl;
         }
 
+        std::cout << "Read before indices" << std::endl;
         indices.resize(nI);
         for (UINT i = 0; i < nI; ++i) {
             xdrFile >> indices[i].vertexPositionIndices[0];
@@ -274,8 +347,34 @@ V3dTriangleGroup::V3dTriangleGroup(xdr::ixstream& xdrFile)
     }
 
 std::vector<float> V3dTriangleGroup::getVertices() {
-    std::cout << "ERROR: V3dTriangleGroup cannot currently give vertices" << std::endl;
-    return std::vector<float>{};
+    // std::cout << "ERROR: V3dTriangleGroup cannot currently give vertices" << std::endl;
+    // return vertexPositions;
+    // return std::vector<float>{};
+    std::vector<float> vertices{};
+
+    vertices.reserve(vertexPositions.size() * 3);
+    for (auto val : vertexPositions) {
+        vertices.push_back(val.x);
+        vertices.push_back(val.y);
+        vertices.push_back(val.z);
+    }
+
+    return vertices;
+}
+
+std::vector<unsigned int> V3dTriangleGroup::getIndices() {
+    // std::cout << "ERROR: V3dTriangleGroup cannot currently give indices" << std::endl;
+    // return std::vector<unsigned int>{};
+    std::vector<unsigned int> out{};
+
+    out.reserve(indices.size() * 3);
+    for (auto val : indices) {
+        out.push_back(val.vertexPositionIndices[0]);
+        out.push_back(val.vertexPositionIndices[1]);
+        out.push_back(val.vertexPositionIndices[2]);
+    }
+
+    return out;
 }
 
 
@@ -294,6 +393,11 @@ V3dSphere::V3dSphere(xdr::ixstream& xdrFile)
 std::vector<float> V3dSphere::getVertices() {
     std::cout << "ERROR: V3dSphere cannot currently give vertices" << std::endl;
     return std::vector<float>{};
+}
+
+std::vector<unsigned int> V3dSphere::getIndices() {
+    std::cout << "ERROR: V3dSphere cannot currently give indices" << std::endl;
+    return std::vector<unsigned int>{};
 }
 
 
@@ -317,6 +421,11 @@ std::vector<float> V3dHemiSphere::getVertices() {
     return std::vector<float>{};
 }
 
+std::vector<unsigned int> V3dHemiSphere::getIndices() {
+    std::cout << "ERROR: V3dHemiSphere cannot currently give indices" << std::endl;
+    return std::vector<unsigned int>{};
+}
+
 
 V3dDisk::V3dDisk(xdr::ixstream& xdrFile)
     : V3dObject{ ObjectTypes::DISK } { 
@@ -336,6 +445,11 @@ V3dDisk::V3dDisk(xdr::ixstream& xdrFile)
 std::vector<float> V3dDisk::getVertices() {
     std::cout << "ERROR: V3dDisk cannot currently give vertices" << std::endl;
     return std::vector<float>{};
+}
+
+std::vector<unsigned int> V3dDisk::getIndices() {
+    std::cout << "ERROR: V3dDisk cannot currently give indices" << std::endl;
+    return std::vector<unsigned int>{};
 }
 
 
@@ -361,6 +475,11 @@ std::vector<float> V3dCylinder::getVertices() {
     return std::vector<float>{};
 }
 
+std::vector<unsigned int> V3dCylinder::getIndices() {
+    std::cout << "ERROR: V3dCylinder cannot currently give indices" << std::endl;
+    return std::vector<unsigned int>{};
+}
+
 
 V3dTube::V3dTube(xdr::ixstream& xdrFile)
     : V3dObject{ ObjectTypes::TUBE } { 
@@ -381,6 +500,11 @@ std::vector<float> V3dTube::getVertices() {
     return std::vector<float>{};
 }
 
+std::vector<unsigned int> V3dTube::getIndices() {
+    std::cout << "ERROR: V3dTube cannot currently give indices" << std::endl;
+    return std::vector<unsigned int>{};
+}
+
 
 V3dBezierCurve::V3dBezierCurve(xdr::ixstream& xdrFile)
     : V3dObject{ ObjectTypes::CURVE } { 
@@ -397,6 +521,11 @@ V3dBezierCurve::V3dBezierCurve(xdr::ixstream& xdrFile)
 std::vector<float> V3dBezierCurve::getVertices() {
     std::cout << "ERROR: V3dBezierCurve cannot currently give vertices" << std::endl;
     return std::vector<float>{};
+}
+
+std::vector<unsigned int> V3dBezierCurve::getIndices() {
+    std::cout << "ERROR: V3dBezierCurve cannot currently give indices" << std::endl;
+    return std::vector<unsigned int>{};
 }
 
 
@@ -417,6 +546,11 @@ std::vector<float> V3dLineSegment::getVertices() {
     return std::vector<float>{};
 }
 
+std::vector<unsigned int> V3dLineSegment::getIndices() {
+    std::cout << "ERROR: V3dLineSegment cannot currently give indices" << std::endl;
+    return std::vector<unsigned int>{};
+}
+
 
 V3dPixel::V3dPixel(xdr::ixstream& xdrFile)
     : V3dObject{ ObjectTypes::PIXEL } { 
@@ -431,4 +565,9 @@ V3dPixel::V3dPixel(xdr::ixstream& xdrFile)
 std::vector<float> V3dPixel::getVertices() {
     std::cout << "ERROR: V3dPixel cannot currently give vertices" << std::endl;
     return std::vector<float>{};
+}
+
+std::vector<unsigned int> V3dPixel::getIndices() {
+    std::cout << "ERROR: V3dPixel cannot currently give indices" << std::endl;
+    return std::vector<unsigned int>{};
 }
