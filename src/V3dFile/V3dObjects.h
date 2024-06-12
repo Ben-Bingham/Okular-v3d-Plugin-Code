@@ -63,7 +63,7 @@ public:
     V3dBezierPatch(xdr::ixstream& xdrFile, BOOL doublePrecision);
     ~V3dBezierPatch() override = default;
 
-    std::vector<float> getVertices() override;
+    std::vector<float> getVertexData() override;
     std::vector<unsigned int> getIndices() override;
 
     std::array<TRIPLE, 16> controlPoints;
@@ -76,7 +76,7 @@ public:
     V3dBezierTriangle(xdr::ixstream& xdrFile, BOOL doublePrecision);
     ~V3dBezierTriangle() override = default;
 
-    std::vector<float> getVertices() override;
+    std::vector<float> getVertexData() override;
     std::vector<unsigned int> getIndices() override;
 
     std::array<TRIPLE, 10> controlPoints;
@@ -89,7 +89,7 @@ public:
     V3dBezierPatchWithCornerColors(xdr::ixstream& xdrFile, BOOL doublePrecision);
     ~V3dBezierPatchWithCornerColors() override = default;
 
-    std::vector<float> getVertices() override;
+    std::vector<float> getVertexData() override;
     std::vector<unsigned int> getIndices() override;
 
     std::array<TRIPLE, 16> controlPoints;
@@ -103,7 +103,7 @@ public:
     V3dBezierTriangleWithCornerColors(xdr::ixstream& xdrFile, BOOL doublePrecision);
     ~V3dBezierTriangleWithCornerColors() override = default;
 
-    std::vector<float> getVertices() override;
+    std::vector<float> getVertexData() override;
     std::vector<unsigned int> getIndices() override;
 
     std::array<TRIPLE, 10> controlPoints;
@@ -117,7 +117,7 @@ public:
     V3dStraightPlanarQuad(xdr::ixstream& xdrFile, BOOL doublePrecision);
     ~V3dStraightPlanarQuad() override = default;
 
-    std::vector<float> getVertices() override;
+    std::vector<float> getVertexData() override;
     std::vector<unsigned int> getIndices() override;
 
     std::array<TRIPLE, 4> vertices;
@@ -130,7 +130,7 @@ public:
     V3dStraightTriangle(xdr::ixstream& xdrFile, BOOL doublePrecision);
     ~V3dStraightTriangle() override = default;
 
-    std::vector<float> getVertices() override;
+    std::vector<float> getVertexData() override;
     std::vector<unsigned int> getIndices() override;
 
     std::array<TRIPLE, 3> vertices;
@@ -143,7 +143,7 @@ public:
     V3dStraightPlanarQuadWithCornderColors(xdr::ixstream& xdrFile, BOOL doublePrecision);
     ~V3dStraightPlanarQuadWithCornderColors() override = default;
 
-    std::vector<float> getVertices() override;
+    std::vector<float> getVertexData() override;
     std::vector<unsigned int> getIndices() override;
 
     std::array<TRIPLE, 4> vertices;
@@ -157,7 +157,7 @@ public:
     V3dStraightTriangleWithCornerColors(xdr::ixstream& xdrFile, BOOL doublePrecision);
     ~V3dStraightTriangleWithCornerColors() override = default;
 
-    std::vector<float> getVertices() override;
+    std::vector<float> getVertexData() override;
     std::vector<unsigned int> getIndices() override;
 
     std::array<TRIPLE, 3> vertices;
@@ -171,7 +171,7 @@ public:
     V3dTriangleGroup(xdr::ixstream& xdrFile, BOOL doublePrecision);
     ~V3dTriangleGroup() override = default;
 
-    std::vector<float> getVertices() override;
+    std::vector<float> getVertexData() override;
     std::vector<unsigned int> getIndices() override;
 
     UINT nI;
@@ -197,7 +197,7 @@ public:
     V3dSphere(xdr::ixstream& xdrFile, BOOL doublePrecision);
     ~V3dSphere() override = default;
 
-    std::vector<float> getVertices() override;
+    std::vector<float> getVertexData() override;
     std::vector<unsigned int> getIndices() override;
 
     TRIPLE center;
@@ -211,7 +211,7 @@ public:
     V3dHemiSphere(xdr::ixstream& xdrFile, BOOL doublePrecision);
     ~V3dHemiSphere() override = default;
 
-    std::vector<float> getVertices() override;
+    std::vector<float> getVertexData() override;
     std::vector<unsigned int> getIndices() override;
 
     TRIPLE center;
@@ -227,7 +227,7 @@ public:
     V3dDisk(xdr::ixstream& xdrFile, BOOL doublePrecision);
     ~V3dDisk() override = default;
 
-    std::vector<float> getVertices() override;
+    std::vector<float> getVertexData() override;
     std::vector<unsigned int> getIndices() override;
 
     TRIPLE center;
@@ -243,7 +243,7 @@ public:
     V3dCylinder(xdr::ixstream& xdrFile, BOOL doublePrecision);
     ~V3dCylinder() override = default;
 
-    std::vector<float> getVertices() override;
+    std::vector<float> getVertexData() override;
     std::vector<unsigned int> getIndices() override;
 
     TRIPLE center;
@@ -260,7 +260,7 @@ public:
     V3dTube(xdr::ixstream& xdrFile, BOOL doublePrecision);
     ~V3dTube() override = default;
 
-    std::vector<float> getVertices() override;
+    std::vector<float> getVertexData() override;
     std::vector<unsigned int> getIndices() override;
 
     std::array<TRIPLE, 4> controlPoints;
@@ -275,7 +275,7 @@ public:
     V3dBezierCurve(xdr::ixstream& xdrFile, BOOL doublePrecision);
     ~V3dBezierCurve() override = default;
 
-    std::vector<float> getVertices() override;
+    std::vector<float> getVertexData() override;
     std::vector<unsigned int> getIndices() override;
 
     std::array<TRIPLE, 4> controlPoints;
@@ -288,7 +288,7 @@ public:
     V3dLineSegment(xdr::ixstream& xdrFile, BOOL doublePrecision);
     ~V3dLineSegment() override = default;
 
-    std::vector<float> getVertices() override;
+    std::vector<float> getVertexData() override;
     std::vector<unsigned int> getIndices() override;
 
     std::array<TRIPLE, 2> endpoints;
@@ -301,7 +301,7 @@ public:
     V3dPixel(xdr::ixstream& xdrFile, BOOL doublePrecision);
     ~V3dPixel() override = default;
 
-    std::vector<float> getVertices() override;
+    std::vector<float> getVertexData() override;
     std::vector<unsigned int> getIndices() override;
 
     TRIPLE position;

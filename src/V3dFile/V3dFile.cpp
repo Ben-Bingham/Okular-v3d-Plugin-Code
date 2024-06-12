@@ -278,7 +278,7 @@ V3dFile::V3dFile(const std::string& fileName) {
     xdrFile.close();
 
     for (auto& object : m_Objects) {
-        std::vector<float> vert = object->getVertices();
+        std::vector<float> vert = object->getVertexData();
         std::vector<unsigned int> ind = object->getIndices();
 
         appendOffset(indices, ind, vertices.size() / 3);

@@ -16,7 +16,7 @@ V3dBezierPatch::V3dBezierPatch(xdr::ixstream& xdrFile, BOOL doublePrecision)
         xdrFile >> materialIndex;
     }
 
-std::vector<float> V3dBezierPatch::getVertices() {
+std::vector<float> V3dBezierPatch::getVertexData() {
     std::cout << "ERROR: V3dBezierPatch cannot currently give vertices" << std::endl;
     return std::vector<float>{};
 }
@@ -39,7 +39,7 @@ V3dBezierTriangle::V3dBezierTriangle(xdr::ixstream& xdrFile, BOOL doublePrecisio
         xdrFile >> materialIndex;
     }
 
-std::vector<float> V3dBezierTriangle::getVertices() {
+std::vector<float> V3dBezierTriangle::getVertexData() {
     std::cout << "ERROR: V3dBezierTriangle cannot currently give vertices" << std::endl;
     return std::vector<float>{};
 }
@@ -69,7 +69,7 @@ V3dBezierPatchWithCornerColors::V3dBezierPatchWithCornerColors(xdr::ixstream& xd
         }
     }
 
-std::vector<float> V3dBezierPatchWithCornerColors::getVertices() {
+std::vector<float> V3dBezierPatchWithCornerColors::getVertexData() {
     std::cout << "ERROR: V3dBezierPatchWithCornerColors cannot currently give vertices" << std::endl;
     return std::vector<float>{};
 }
@@ -99,7 +99,7 @@ V3dBezierTriangleWithCornerColors::V3dBezierTriangleWithCornerColors(xdr::ixstre
         }    
     }
 
-std::vector<float> V3dBezierTriangleWithCornerColors::getVertices() {
+std::vector<float> V3dBezierTriangleWithCornerColors::getVertexData() {
     std::cout << "ERROR: V3dBezierTriangleWithCornerColors cannot currently give vertices" << std::endl;
     return std::vector<float>{};
 }
@@ -122,7 +122,7 @@ V3dStraightPlanarQuad::V3dStraightPlanarQuad(xdr::ixstream& xdrFile, BOOL double
         xdrFile >> materialIndex; 
     }
 
-std::vector<float> V3dStraightPlanarQuad::getVertices() {
+std::vector<float> V3dStraightPlanarQuad::getVertexData() {
     std::vector<float> out{};
 
     for (auto& ver : vertices) {
@@ -156,7 +156,7 @@ V3dStraightTriangle::V3dStraightTriangle(xdr::ixstream& xdrFile, BOOL doublePrec
         xdrFile >> materialIndex;
     }
 
-std::vector<float> V3dStraightTriangle::getVertices() {
+std::vector<float> V3dStraightTriangle::getVertexData() {
     std::vector<float> out{};
 
     for (auto& ver : vertices) {
@@ -196,7 +196,7 @@ V3dStraightPlanarQuadWithCornderColors::V3dStraightPlanarQuadWithCornderColors(x
         }
     }
 
-std::vector<float> V3dStraightPlanarQuadWithCornderColors::getVertices() {
+std::vector<float> V3dStraightPlanarQuadWithCornderColors::getVertexData() {
     std::cout << "ERROR: V3dStraightPlanarQuadWithCornderColors cannot currently give vertices" << std::endl;
     return std::vector<float>{};
 }
@@ -226,7 +226,7 @@ V3dStraightTriangleWithCornerColors::V3dStraightTriangleWithCornerColors(xdr::ix
         }
     }
 
-std::vector<float> V3dStraightTriangleWithCornerColors::getVertices() {
+std::vector<float> V3dStraightTriangleWithCornerColors::getVertexData() {
     std::cout << "ERROR: V3dStraightTriangleWithCornerColors cannot currently give vertices" << std::endl;
     return std::vector<float>{};
 }
@@ -304,7 +304,7 @@ V3dTriangleGroup::V3dTriangleGroup(xdr::ixstream& xdrFile, BOOL doublePrecision)
         xdrFile >> materialIndex;
     }
 
-std::vector<float> V3dTriangleGroup::getVertices() {
+std::vector<float> V3dTriangleGroup::getVertexData() {
     std::vector<float> out;
 
     std::vector<TRIPLE> vertices;
@@ -367,7 +367,7 @@ V3dSphere::V3dSphere(xdr::ixstream& xdrFile, BOOL doublePrecision)
         xdrFile >> materialIndex;
     }
 
-std::vector<float> V3dSphere::getVertices() {
+std::vector<float> V3dSphere::getVertexData() {
     std::cout << "ERROR: V3dSphere cannot currently give vertices" << std::endl;
     return std::vector<float>{};
 }
@@ -394,7 +394,7 @@ V3dHemiSphere::V3dHemiSphere(xdr::ixstream& xdrFile, BOOL doublePrecision)
 
     }
 
-std::vector<float> V3dHemiSphere::getVertices() {
+std::vector<float> V3dHemiSphere::getVertexData() {
     std::cout << "ERROR: V3dHemiSphere cannot currently give vertices" << std::endl;
     return std::vector<float>{};
 }
@@ -420,7 +420,7 @@ V3dDisk::V3dDisk(xdr::ixstream& xdrFile, BOOL doublePrecision)
         azimuthalAngle = readReal(xdrFile, doublePrecision);
     }
 
-std::vector<float> V3dDisk::getVertices() {
+std::vector<float> V3dDisk::getVertexData() {
     std::cout << "ERROR: V3dDisk cannot currently give vertices" << std::endl;
     return std::vector<float>{};
 }
@@ -448,7 +448,7 @@ V3dCylinder::V3dCylinder(xdr::ixstream& xdrFile, BOOL doublePrecision)
         azimuthalAngle = readReal(xdrFile, doublePrecision);
     }
 
-std::vector<float> V3dCylinder::getVertices() {
+std::vector<float> V3dCylinder::getVertexData() {
     std::cout << "ERROR: V3dCylinder cannot currently give vertices" << std::endl;
     return std::vector<float>{};
 }
@@ -474,7 +474,7 @@ V3dTube::V3dTube(xdr::ixstream& xdrFile, BOOL doublePrecision)
         xdrFile >> core;
     }
 
-std::vector<float> V3dTube::getVertices() {
+std::vector<float> V3dTube::getVertexData() {
     std::cout << "ERROR: V3dTube cannot currently give vertices" << std::endl;
     return std::vector<float>{};
 }
@@ -497,7 +497,7 @@ V3dBezierCurve::V3dBezierCurve(xdr::ixstream& xdrFile, BOOL doublePrecision)
         xdrFile >> materialIndex;
     }
 
-std::vector<float> V3dBezierCurve::getVertices() {
+std::vector<float> V3dBezierCurve::getVertexData() {
     std::cout << "ERROR: V3dBezierCurve cannot currently give vertices" << std::endl;
     return std::vector<float>{};
 }
@@ -520,7 +520,7 @@ V3dLineSegment::V3dLineSegment(xdr::ixstream& xdrFile, BOOL doublePrecision)
         xdrFile >> materialIndex;    
     }
 
-std::vector<float> V3dLineSegment::getVertices() {
+std::vector<float> V3dLineSegment::getVertexData() {
     std::cout << "ERROR: V3dLineSegment cannot currently give vertices" << std::endl;
     return std::vector<float>{};
 }
@@ -541,7 +541,7 @@ V3dPixel::V3dPixel(xdr::ixstream& xdrFile, BOOL doublePrecision)
         xdrFile >> materialIndex;
     }
 
-std::vector<float> V3dPixel::getVertices() {
+std::vector<float> V3dPixel::getVertexData() {
     std::cout << "ERROR: V3dPixel cannot currently give vertices" << std::endl;
     return std::vector<float>{};
 }
