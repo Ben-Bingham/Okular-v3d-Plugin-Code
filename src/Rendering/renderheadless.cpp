@@ -538,7 +538,7 @@ void HeadlessRenderer::createGraphicsPipeline() {
 	VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineCreateInfo, nullptr, &pipeline));
 }
 
-void HeadlessRenderer::recordCommandBuffer(int targetWidth, int targetHeight, size_t indexCount) {	
+void HeadlessRenderer::recordCommandBuffer(int targetWidth, int targetHeight, size_t indexCount, const glm::mat4& mvp) {	
 	VkCommandBuffer commandBuffer;
 	VkCommandBufferAllocateInfo cmdBufAllocateInfo =
 		vks::initializers::commandBufferAllocateInfo(commandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY, 1);
@@ -584,16 +584,6 @@ void HeadlessRenderer::recordCommandBuffer(int targetWidth, int targetHeight, si
 	vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer, offsets);
 	vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-	glm::mat4 model = glm::mat4{ 1.0f };
-
-	glm::mat4 view = glm::mat4{ 1.0f };
-	view = glm::translate(view, glm::vec3(80.0f, 10.0f, -100.0f));
-
-	glm::mat4 projection = glm::perspective(glm::radians(60.0f), (float)targetWidth / (float)targetHeight, 0.1f, 10000.0f);
-	// projection = glm::mat4{ 1.0f };
-
-	glm::mat4 mvp = projection * model * view;
-	// * glm::translate(glm::mat4(1.0f), v);
 	vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(mvp), &mvp);
 	vkCmdDrawIndexed(commandBuffer, indexCount, 1, 0, 0, 0);
 
@@ -716,7 +706,7 @@ unsigned char* HeadlessRenderer::copyToHost(int targetWidth, int targetHeight, V
 	return returnData;
 }
 
-unsigned char* HeadlessRenderer::render(int targetWidth, int targetHeight, VkSubresourceLayout* imageSubresourceLayout, const std::vector<float>& vertices, const std::vector<unsigned int>& indices) {	
+unsigned char* HeadlessRenderer::render(int targetWidth, int targetHeight, VkSubresourceLayout* imageSubresourceLayout, const std::vector<float>& vertices, const std::vector<unsigned int>& indices, const glm::mat4& mvp) {	
 	createInstance();
 	createPhysicalDevice();
 
@@ -744,7 +734,7 @@ unsigned char* HeadlessRenderer::render(int targetWidth, int targetHeight, VkSub
 	createAttachments(colorFormat, depthFormat, targetWidth, targetHeight);
 	createRenderPipeline(colorFormat, depthFormat, targetWidth, targetHeight);
 	createGraphicsPipeline();
-	recordCommandBuffer(targetWidth, targetHeight, indices.size());
+	recordCommandBuffer(targetWidth, targetHeight, indices.size(), mvp);
 
 	unsigned char* returnData = copyToHost(targetWidth, targetHeight, imageSubresourceLayout);
 

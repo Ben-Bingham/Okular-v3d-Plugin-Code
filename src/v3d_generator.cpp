@@ -82,7 +82,15 @@ void V3dGenerator::generatePixmap(Okular::PixmapRequest* request) {
     int height = request->height();
     VkSubresourceLayout imageSubresourceLayout;
 
-    unsigned char* imageData = m_HeadlessRenderer->render(width, height, &imageSubresourceLayout, vertices, indices);
+    glm::mat4 model = glm::mat4{ 1.0f };
+
+	glm::mat4 view = glm::mat4{ 1.0f };
+
+	glm::mat4 projection = glm::perspective(m_File->headerInfo.angleOfView, (float)width / (float)height, 0.1f, 10000.0f);
+
+	glm::mat4 mvp = projection * model * view;
+
+    unsigned char* imageData = m_HeadlessRenderer->render(width, height, &imageSubresourceLayout, vertices, indices, mvp);
 
     auto imgDatatmp = imageData;
 
@@ -110,7 +118,7 @@ void V3dGenerator::generatePixmap(Okular::PixmapRequest* request) {
 
     QImage image{ vectorData.data(), request->width(), request->height(), QImage::Format_ARGB32 };
 
-    image = image.mirrored(false, true); // TODO reimplement flipping
+    image = image.mirrored(false, true);
 
     request->page()->setPixmap(request->observer(), new QPixmap(QPixmap::fromImage(image)));
 
