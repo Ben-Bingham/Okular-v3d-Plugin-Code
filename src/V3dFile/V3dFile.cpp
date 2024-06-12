@@ -7,13 +7,20 @@
 
 #include "xstream.h"
 
+// append array b onto array a with offset
+void appendOffset(std::vector<UINT>& a, const std::vector<UINT>& b, size_t offset) {
+    size_t n=a.size();
+    size_t m=b.size();
+    a.resize(n+m);
+    for(size_t i=0; i < m; ++i)
+        a[n+i]=b[i]+offset;
+}
+
 V3dFile::V3dFile(const std::string& fileName) {
     xdr::ixstream xdrFile{ fileName.c_str() };
 
     xdrFile >> versionNumber;
     xdrFile >> doublePrecisionFlag;
-
-    std::cout << "Double Precision: " << doublePrecisionFlag << std::endl;
 
     // std::cout << "==========================================" << std::endl;
     // UINT data;
@@ -22,11 +29,8 @@ V3dFile::V3dFile(const std::string& fileName) {
     // }
     // std::cout << "==========================================" << std::endl;
 
-    std::cout << "Filename: " << fileName << std::endl;
-
     UINT objectType;
     while (xdrFile >> objectType) {
-        std::cout << "ObjectType: " << objectType << std::endl;
         switch (objectType) {
         default:
             std::cout << "UNKNOWN TYPE: " << objectType << std::endl;
@@ -81,7 +85,91 @@ V3dFile::V3dFile(const std::string& fileName) {
             break;
 
         case ObjectTypes::HEADER:
-            m_Objects.push_back(std::move(std::make_unique<V3dHeader>(xdrFile)));
+            UINT headerEntryCount;
+            xdrFile >> headerEntryCount;
+
+            for (UINT i = 0; i < headerEntryCount; ++i) {
+                UINT headerKey;
+                xdrFile >> headerKey;
+
+                UINT length;
+                xdrFile >> length;
+
+                switch (headerKey) {
+                    case CANVAS_WIDTH:
+                        xdrFile >> headerInfo.canvasWidth;   
+                        break;     
+                    case CANVAS_HEIGHT:
+                        xdrFile >> headerInfo.canvasHeight; 
+                        break;      
+                    case ABSOLUTE:
+                        xdrFile >> headerInfo.absolute;   
+                        break;        
+                    case MIN_BOUND:
+                        xdrFile >> headerInfo.minBound.x;
+                        xdrFile >> headerInfo.minBound.y;
+                        xdrFile >> headerInfo.minBound.z;  
+                        break;        
+                    case MAX_BOUND:
+                        xdrFile >> headerInfo.maxBound.x;
+                        xdrFile >> headerInfo.maxBound.y;
+                        xdrFile >> headerInfo.maxBound.z; 
+                        break;          
+                    case ORTHOGRAPHIC:
+                        xdrFile >> headerInfo.orthographic;   
+                        break;     
+                    case ANGLE_OF_VIEW:
+                        xdrFile >> headerInfo.angleOfView; 
+                        break;     
+                    case INITIAL_ZOOM:
+                        xdrFile >> headerInfo.initialZoom;   
+                        break;     
+                    case VIEWPORT_SHIFT:
+                        xdrFile >> headerInfo.viewportShift.x;
+                        xdrFile >> headerInfo.viewportShift.y;    
+                        break;    
+                    case VIEWPORT_MARGIN:
+                        xdrFile >> headerInfo.viewportMargin.x;
+                        xdrFile >> headerInfo.viewportMargin.y;    
+                        break;
+                    case LIGHT:
+                        xdrFile >> headerInfo.light.direction.x;
+                        xdrFile >> headerInfo.light.direction.y;
+                        xdrFile >> headerInfo.light.direction.z;
+
+                        xdrFile >> headerInfo.light.color.r;
+                        xdrFile >> headerInfo.light.color.g;       
+                        xdrFile >> headerInfo.light.color.b;              
+                        break;       
+                    case BACKGROUND:
+                        xdrFile >> headerInfo.background.r;
+                        xdrFile >> headerInfo.background.g;
+                        xdrFile >> headerInfo.background.b;
+                        xdrFile >> headerInfo.background.a; 
+                        break;      
+                    case ZOOM_FACTOR:
+                        xdrFile >> headerInfo.zoomFactor;    
+                        break;    
+                    case ZOOM_PINCH_FACTOR:
+                        xdrFile >> headerInfo.zoomPinchFactor;  
+                        break;
+                    case ZOOM_PINCH_CAP:
+                        xdrFile >> headerInfo.zoomPinchCap;     
+                        break;
+                    case ZOOM_STEP:
+                        xdrFile >> headerInfo.zoomStep;          
+                        break;
+                    case SHIFT_HOLD_DISTANCE:
+                        xdrFile >> headerInfo.shiftHoldDistance;
+                        break;
+                    case SHIFT_WAIT_TIME:
+                        xdrFile >> headerInfo.shiftWaitTime;    
+                        break;
+                    case VIBRATE_TIME:
+                        xdrFile >> headerInfo.vibrateTime;    
+                        break;    
+                }
+            }
             break;
 
         case ObjectTypes::LINE:
@@ -168,36 +256,11 @@ V3dFile::V3dFile(const std::string& fileName) {
 
     xdrFile.close();
 
-
-    std::vector<float> outVertices;
-
     for (auto& object : m_Objects) {
         std::vector<float> vert = object->getVertices();
-
-        for (auto& value : vert) {
-            outVertices.push_back(value);
-        }
-    }
-
-    this->vertices = outVertices;
-
-
-    std::vector<unsigned int> outIndices;
-
-    unsigned int lastHightestIndex = 0;
-    for (auto& object : m_Objects) {
         std::vector<unsigned int> ind = object->getIndices();
 
-        for (auto& val : ind) {
-            outIndices.push_back(val + lastHightestIndex);
-        }
-
-        for (auto& val : ind) {
-            if (val >= lastHightestIndex) {
-                lastHightestIndex = val + 1;
-            }
-        }
+        appendOffset(indices, ind, vertices.size() / 3);
+        vertices.insert(vertices.end(), vert.begin(), vert.end());
     }
-
-    this->indices = outIndices;
 }

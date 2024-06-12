@@ -58,27 +58,6 @@ struct V3dMaterial {
     FLOAT fresnel0;
 };
 
-class V3dHeader : public V3dObject {
-public:
-    V3dHeader(xdr::ixstream& xdrFile);
-    ~V3dHeader() override = default;
-
-    std::vector<float> getVertices() override;
-    std::vector<unsigned int> getIndices() override;
-
-    class HeaderEntry {
-        public:
-        HeaderEntry(xdr::ixstream& xdrFile);
-
-        UINT headerKey;
-        UINT dataLength;
-        std::vector<WORD> data;
-    };
-
-    UINT headerEntryCount;
-    std::vector<HeaderEntry> entries;
-};
-
 class V3dBezierPatch : public V3dObject {
 public:
     V3dBezierPatch(xdr::ixstream& xdrFile);
@@ -195,12 +174,6 @@ public:
     std::vector<float> getVertices() override;
     std::vector<unsigned int> getIndices() override;
 
-    struct Index {
-        std::array<UINT, 3> vertexPositionIndices;
-        std::array<UINT, 3> vertexNormalIndices;
-        std::array<UINT, 3> vertexColorIndices;
-    };
-
     UINT nI;
     UINT nP;
     std::vector<TRIPLE> vertexPositions;        // size is nP
@@ -210,7 +183,11 @@ public:
     UINT nC;
     std::vector<RGBA> vertexColorArray;         // size is nC
     BOOL explicitCI;
-    std::vector<Index> indices;                 // size is nI;
+
+    std::vector<std::array<UINT, 3>> positionIndices;   // Vector has size nI
+    std::vector<std::array<UINT, 3>> normalIndices;     // Vector has size nI
+    std::vector<std::array<UINT, 3>> colorIndices;      // Vector has size nI
+
     UINT centerIndex;
     UINT materialIndex;
 };

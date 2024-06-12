@@ -9,11 +9,12 @@ layout (location = 0) in vec3 inPos;
 // 	vec4 gl_Position;   
 // };
 
-// layout(push_constant) uniform PushConsts {
-// 	mat4 mvp;
-// } pushConsts;
+layout(push_constant) uniform PushConsts {
+	mat4 mvp;
+} pushConsts;
 
 void main() {
 	// outColor = inColor;
-	gl_Position = vec4(inPos.xyz, 1.0);
+	gl_Position = pushConsts.mvp * vec4(inPos.xyz, 1.0);
+	//gl_Position = vec4(inPos.xyz, 1.0);
 }

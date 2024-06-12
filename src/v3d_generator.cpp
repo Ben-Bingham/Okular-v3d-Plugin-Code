@@ -6,6 +6,7 @@
 
     Code has been modified by Benjamin Bingham to become: v3d_generator
 */
+
 #include <iostream>
 
 #include "v3d_generator.h"
@@ -55,10 +56,18 @@ bool V3dGenerator::doCloseDocument() {
     return true;
 }
 
-bool V3dGenerator::loadDocument(const QString &fileName, QVector<Okular::Page *> &pagesVector) { // TODO load document here instead of generatePixmap
+bool V3dGenerator::loadDocument(const QString &fileName, QVector<Okular::Page *> &pagesVector) {
     m_File = std::make_unique<V3dFile>(fileName.toStdString());
 
-    Okular::Page* page = new Okular::Page(0, 1000, 1000, Okular::Rotation0);
+    size_t width = m_File->headerInfo.canvasWidth;
+    size_t height = m_File->headerInfo.canvasHeight;
+
+    while (!(width > 600)) {
+        width *= 2;
+        height *= 2;
+    }
+
+    Okular::Page* page = new Okular::Page(0, width, height, Okular::Rotation0);
 
     pagesVector.append(page);
 
@@ -72,11 +81,6 @@ void V3dGenerator::generatePixmap(Okular::PixmapRequest* request) {
     int width = request->width();
     int height = request->height();
     VkSubresourceLayout imageSubresourceLayout;
-
-    // std::vector<unsigned int> indices{};
-    // for (unsigned int i = 0; i < vertices.size(); ++i) {
-    //     indices.push_back(i);
-    // }
 
     unsigned char* imageData = m_HeadlessRenderer->render(width, height, &imageSubresourceLayout, vertices, indices);
 

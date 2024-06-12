@@ -2,7 +2,7 @@
 
 #include <glm/glm.hpp>
 
-// #define SINGLE_PRECISION
+#define SINGLE_PRECISION
 
 using UINT = uint32_t;
 using BOOL = uint32_t;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "V3dObjects.h"
+#include "V3dHeaderInfo.h"
 
 class V3dFile {
 public:
@@ -13,6 +14,8 @@ public:
     std::vector<V3dMaterial> materials;
 
     std::vector<std::unique_ptr<V3dObject>> m_Objects;
+
+    V3dHeaderInfo headerInfo;
 
     std::vector<float> vertices;
     std::vector<unsigned int> indices;

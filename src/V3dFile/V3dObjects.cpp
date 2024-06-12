@@ -2,39 +2,6 @@
 
 #include <iostream>
 
-#include "V3dHeaderEntries.h"
-
-V3dHeader::V3dHeader(xdr::ixstream& xdrFile) 
-    : V3dObject{ ObjectTypes::HEADER } {
-        xdrFile >> headerEntryCount;
-        
-        for (UINT i = 0; i < headerEntryCount; ++i) {
-            entries.push_back(HeaderEntry{ xdrFile });
-        }
-    }
-
-std::vector<float> V3dHeader::getVertices() {
-    std::cout << "ERROR: V3dHeader cannot currently give vertices" << std::endl;
-    return std::vector<float>{};
-}
-
-std::vector<unsigned int> V3dHeader::getIndices() {
-    std::cout << "ERROR: V3dHeader cannot currently give indices" << std::endl;
-    return std::vector<unsigned int>{};
-}
-
-
-V3dHeader::HeaderEntry::HeaderEntry(xdr::ixstream& xdrFile) {
-    xdrFile >> headerKey;
-    xdrFile >> dataLength;
-
-    data.resize(dataLength);
-
-    for (size_t i = 0; i < dataLength; ++i) {
-        xdrFile >> data[i];
-    }
-}
-
 V3dBezierPatch::V3dBezierPatch(xdr::ixstream& xdrFile)
     : V3dObject{ ObjectTypes::BEZIER_PATCH } { 
         for (int i = 0; i < 16; ++i) {
@@ -260,15 +227,11 @@ std::vector<unsigned int> V3dStraightTriangleWithCornerColors::getIndices() {
 
 V3dTriangleGroup::V3dTriangleGroup(xdr::ixstream& xdrFile)
     : V3dObject{ ObjectTypes::TRIANGLES } { 
-        
-
         nI = 0;
         xdrFile >> nI;
-        std::cout << "nI: " << nI << std::endl;
 
         nP = 0;
         xdrFile >> nP;
-        std::cout << "nP: " << nP << std::endl;
         vertexPositions.resize(nP);
         for (UINT i = 0; i < nP; ++i) {
             xdrFile >> vertexPositions[i].x;
@@ -276,17 +239,8 @@ V3dTriangleGroup::V3dTriangleGroup(xdr::ixstream& xdrFile)
             xdrFile >> vertexPositions[i].z;
         }
 
-
-        std::cout << "Printing vertex positions" << std::endl;
-        for (auto val : vertexPositions) {
-            std::cout << "X: " << val.x << ", Y: " << val.y << ", Z: " << val.z << std::endl;
-        }
-
-        std::cout << "===========================" << std::endl;
-
         nN = 0;
         xdrFile >> nN;
-        std::cout << "nN: " << nN << std::endl;
         vertexNormalArray.resize(nN);
         for (UINT i = 0; i < nN; ++i) {
             xdrFile >> vertexNormalArray[i].x;
@@ -294,15 +248,10 @@ V3dTriangleGroup::V3dTriangleGroup(xdr::ixstream& xdrFile)
             xdrFile >> vertexNormalArray[i].z;
         }
 
-        std::cout << "Read in vertex normal array" << std::endl;
-
         xdrFile >> explicitNI;
-        std::cout << "ExplicitNi: " << explicitNI << std::endl;
 
         xdrFile >> nC;
-        std::cout << "nC: " << nC << std::endl;
         if (nC > 0) {
-            std::cout << "nC > 0" << std::endl;
             vertexColorArray.resize(nC);
             for (UINT i = 0; i < nC; ++i) {
                 xdrFile >> vertexColorArray[i].r;
@@ -312,34 +261,31 @@ V3dTriangleGroup::V3dTriangleGroup(xdr::ixstream& xdrFile)
             }
 
             xdrFile >> explicitCI;
-            std::cout << "explicitCI: " << explicitCI << std::endl;
         }
 
-        std::cout << "Read before indices" << std::endl;
-        indices.resize(nI);
+        positionIndices.resize(nI);
+        normalIndices.resize(nI);
+        colorIndices.resize(nI);
+
         for (UINT i = 0; i < nI; ++i) {
-            xdrFile >> indices[i].vertexPositionIndices[0];
-            xdrFile >> indices[i].vertexPositionIndices[1];
-            xdrFile >> indices[i].vertexPositionIndices[2];
+            xdrFile >> positionIndices[i][0];
+            xdrFile >> positionIndices[i][1];
+            xdrFile >> positionIndices[i][2];
 
             if (explicitNI) {
-                xdrFile >> indices[i].vertexNormalIndices[0];
-                xdrFile >> indices[i].vertexNormalIndices[1];
-                xdrFile >> indices[i].vertexNormalIndices[2];
+                xdrFile >> normalIndices[i][0];
+                xdrFile >> normalIndices[i][1];
+                xdrFile >> normalIndices[i][2];
             } else {
-                indices[i].vertexNormalIndices[0] = indices[i].vertexPositionIndices[0];
-                indices[i].vertexNormalIndices[1] = indices[i].vertexPositionIndices[1];
-                indices[i].vertexNormalIndices[2] = indices[i].vertexPositionIndices[2];
+                normalIndices[i] = positionIndices[i];
             }
 
             if (nC > 0 && explicitCI) {
-                xdrFile >> indices[i].vertexColorIndices[0];
-                xdrFile >> indices[i].vertexColorIndices[1];
-                xdrFile >> indices[i].vertexColorIndices[2];
+                xdrFile >> colorIndices[i][0];
+                xdrFile >> colorIndices[i][1];
+                xdrFile >> colorIndices[i][2];
             } else {
-                indices[i].vertexColorIndices[0] = indices[i].vertexPositionIndices[0];
-                indices[i].vertexColorIndices[1] = indices[i].vertexPositionIndices[1];
-                indices[i].vertexColorIndices[2] = indices[i].vertexPositionIndices[2];
+                colorIndices[i] = positionIndices[i];
             }
         }
         xdrFile >> centerIndex;
@@ -347,31 +293,97 @@ V3dTriangleGroup::V3dTriangleGroup(xdr::ixstream& xdrFile)
     }
 
 std::vector<float> V3dTriangleGroup::getVertices() {
-    // std::cout << "ERROR: V3dTriangleGroup cannot currently give vertices" << std::endl;
-    // return vertexPositions;
-    // return std::vector<float>{};
-    std::vector<float> vertices{};
+    std::vector<float> out;
 
-    vertices.reserve(vertexPositions.size() * 3);
-    for (auto val : vertexPositions) {
-        vertices.push_back(val.x);
-        vertices.push_back(val.y);
-        vertices.push_back(val.z);
+    std::vector<TRIPLE> vertices;
+    vertices.resize(nP);
+
+    // std::cout << "==================================" << std::endl;
+    for(size_t i = 0; i < nI; ++i) {
+        std::array<unsigned int, 3> PI = positionIndices[i];
+        // const uint32_t *PI=PP[i];
+        uint32_t PI0 = PI[0];
+        uint32_t PI1 = PI[1];
+        uint32_t PI2 = PI[2];
+        TRIPLE P0 = vertexPositions[PI0];
+        TRIPLE P1 = vertexPositions[PI1];
+        TRIPLE P2 = vertexPositions[PI2];
+
+        // std::cout << "0: " << PI0 << ", 1: " << PI1 << ", 2: " << PI2 << std::endl;
+
+        // data.Vertices[PI0]=VertexData(P0,N[NI[0]]);
+        // data.Vertices[PI1]=VertexData(P1,N[NI[1]]);
+        // data.Vertices[PI2]=VertexData(P2,N[NI[2]]);
+
+        vertices[PI0] = P0;
+        vertices[PI1] = P1;
+        vertices[PI2] = P2;
+
+        // triple Q[]={P0,P1,P2};
+        // if(!offscreen(3,Q)) {
+        //     size_t i3=3*i;
+        //     data.indices[i3]=PI0;
+        //     data.indices[i3+1]=PI1;
+        //     data.indices[i3+2]=PI2;
+        // }
     }
 
-    return vertices;
+    for (auto vertex : vertices) {
+        out.push_back(vertex.x);
+        out.push_back(vertex.y);
+        out.push_back(vertex.z);
+    }
+
+    return out;
 }
 
 std::vector<unsigned int> V3dTriangleGroup::getIndices() {
-    // std::cout << "ERROR: V3dTriangleGroup cannot currently give indices" << std::endl;
-    // return std::vector<unsigned int>{};
-    std::vector<unsigned int> out{};
+    std::vector<unsigned int> out;
 
-    out.reserve(indices.size() * 3);
-    for (auto val : indices) {
-        out.push_back(val.vertexPositionIndices[0]);
-        out.push_back(val.vertexPositionIndices[1]);
-        out.push_back(val.vertexPositionIndices[2]);
+    out.resize(nI * 3);
+
+    // int j = 0;
+    // for (int i = 0; i < nI * 3; i += 3) {
+    //     std::array<unsigned int, 3> currentIndices = positionIndices[j];
+    //     UINT index0 = currentIndices[0];
+    //     UINT index1 = currentIndices[1];
+    //     UINT index2 = currentIndices[2];
+
+    //     out[i + 0] = index0;
+    //     out[i + 1] = index1;
+    //     out[i + 2] = index2;
+    //     j++;
+    // }
+
+
+    for(size_t i = 0; i < nI; ++i) {
+        std::array<unsigned int, 3> PI = positionIndices[i];
+        // const uint32_t *PI=PP[i];
+        uint32_t PI0 = PI[0];
+        uint32_t PI1 = PI[1];
+        uint32_t PI2 = PI[2];
+        // TRIPLE P0 = vertexPositions[PI0];
+        // TRIPLE P1 = vertexPositions[PI1];
+        // TRIPLE P2 = vertexPositions[PI2];
+
+        // data.Vertices[PI0]=VertexData(P0,N[NI[0]]);
+        // data.Vertices[PI1]=VertexData(P1,N[NI[1]]);
+        // data.Vertices[PI2]=VertexData(P2,N[NI[2]]);
+
+        // vertices[PI0] = P0;
+        // vertices[PI1] = P1;
+        // vertices[PI2] = P2;
+
+        // triple Q[]={P0,P1,P2};
+        // if(!offscreen(3,Q)) {
+        size_t i3=3*i;
+        out[i3 + 0] = PI0;
+        out[i3 + 1] = PI1;
+        out[i3 + 2] = PI2;
+        //     data.indices[i3]=PI0;
+        //     data.indices[i3+1]=PI1;
+        //     data.indices[i3+2]=PI2;
+        // }
     }
 
     return out;

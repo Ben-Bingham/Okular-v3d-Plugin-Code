@@ -6,6 +6,8 @@
 * This code is licensed under the MIT license (MIT) (http://opensource.org/licenses/MIT)
 */
 
+#include <glm/gtc/matrix_transform.hpp>
+
 #include "renderheadless.h"
 
 HeadlessRenderer::HeadlessRenderer(std::string shaderPath)
@@ -448,6 +450,11 @@ void HeadlessRenderer::createGraphicsPipeline() {
 	VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo =
 		vks::initializers::pipelineLayoutCreateInfo(nullptr, 0);
 
+	// MVP via push constant block
+	VkPushConstantRange pushConstantRange = vks::initializers::pushConstantRange(VK_SHADER_STAGE_VERTEX_BIT, sizeof(glm::mat4), 0);
+	pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
+	pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstantRange;
+
 	VK_CHECK_RESULT(vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout));
 
 	VkPipelineCacheCreateInfo pipelineCacheCreateInfo = {};
@@ -577,6 +584,17 @@ void HeadlessRenderer::recordCommandBuffer(int targetWidth, int targetHeight, si
 	vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer, offsets);
 	vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
+	glm::mat4 model = glm::mat4{ 1.0f };
+
+	glm::mat4 view = glm::mat4{ 1.0f };
+	view = glm::translate(view, glm::vec3(80.0f, 10.0f, -100.0f));
+
+	glm::mat4 projection = glm::perspective(glm::radians(60.0f), (float)targetWidth / (float)targetHeight, 0.1f, 10000.0f);
+	// projection = glm::mat4{ 1.0f };
+
+	glm::mat4 mvp = projection * model * view;
+	// * glm::translate(glm::mat4(1.0f), v);
+	vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(mvp), &mvp);
 	vkCmdDrawIndexed(commandBuffer, indexCount, 1, 0, 0, 0);
 
 	vkCmdEndRenderPass(commandBuffer);
@@ -698,20 +716,9 @@ unsigned char* HeadlessRenderer::copyToHost(int targetWidth, int targetHeight, V
 	return returnData;
 }
 
-unsigned char* HeadlessRenderer::render(int targetWidth, int targetHeight, VkSubresourceLayout* imageSubresourceLayout, const std::vector<float>& vertices, const std::vector<unsigned int>& indices) {
+unsigned char* HeadlessRenderer::render(int targetWidth, int targetHeight, VkSubresourceLayout* imageSubresourceLayout, const std::vector<float>& vertices, const std::vector<unsigned int>& indices) {	
 	createInstance();
 	createPhysicalDevice();
-
-	std::cout << "==================================" << std::endl;
-	for (auto val : vertices) {
-		std::cout << val << std::endl;
-	}
-	std::cout << "==================================" << std::endl;
-
-	for (auto val : indices) {
-		std::cout << val << std::endl;
-	}
-	std::cout << "==================================" << std::endl;
 
 	VkDeviceQueueCreateInfo queueCreateInfo = requestGraphicsQueue();
 
