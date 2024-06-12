@@ -2,12 +2,14 @@
 
 #include <iostream>
 
-V3dBezierPatch::V3dBezierPatch(xdr::ixstream& xdrFile)
+#include "V3dUtil.h"
+
+V3dBezierPatch::V3dBezierPatch(xdr::ixstream& xdrFile, BOOL doublePrecision)
     : V3dObject{ ObjectTypes::BEZIER_PATCH } { 
         for (int i = 0; i < 16; ++i) {
-            xdrFile >> controlPoints[i].x;
-            xdrFile >> controlPoints[i].y;
-            xdrFile >> controlPoints[i].z;
+            controlPoints[i].x = readReal(xdrFile, doublePrecision);
+            controlPoints[i].y = readReal(xdrFile, doublePrecision);
+            controlPoints[i].z = readReal(xdrFile, doublePrecision);
         }
 
         xdrFile >> centerIndex;
@@ -25,12 +27,12 @@ std::vector<unsigned int> V3dBezierPatch::getIndices() {
 }
 
 
-V3dBezierTriangle::V3dBezierTriangle(xdr::ixstream& xdrFile)
+V3dBezierTriangle::V3dBezierTriangle(xdr::ixstream& xdrFile, BOOL doublePrecision)
     : V3dObject{ ObjectTypes::BEZIER_TRIANGLE } { 
         for (int i = 0; i < 10; ++i) {
-            xdrFile >> controlPoints[i].x;
-            xdrFile >> controlPoints[i].y;
-            xdrFile >> controlPoints[i].z;
+            controlPoints[i].x = readReal(xdrFile, doublePrecision);
+            controlPoints[i].y = readReal(xdrFile, doublePrecision);
+            controlPoints[i].z = readReal(xdrFile, doublePrecision);
         }
 
         xdrFile >> centerIndex;
@@ -48,12 +50,12 @@ std::vector<unsigned int> V3dBezierTriangle::getIndices() {
 }
 
 
-V3dBezierPatchWithCornerColors::V3dBezierPatchWithCornerColors(xdr::ixstream& xdrFile)
+V3dBezierPatchWithCornerColors::V3dBezierPatchWithCornerColors(xdr::ixstream& xdrFile, BOOL doublePrecision)
     : V3dObject{ ObjectTypes::BEZIER_PATCH_COLOR } {
         for (int i = 0; i < 16; ++i) {
-            xdrFile >> controlPoints[i].x;
-            xdrFile >> controlPoints[i].y;
-            xdrFile >> controlPoints[i].z;
+            controlPoints[i].x = readReal(xdrFile, doublePrecision);
+            controlPoints[i].y = readReal(xdrFile, doublePrecision);
+            controlPoints[i].z = readReal(xdrFile, doublePrecision);
         }
 
         xdrFile >> centerIndex;
@@ -78,12 +80,12 @@ std::vector<unsigned int> V3dBezierPatchWithCornerColors::getIndices() {
 }
 
 
-V3dBezierTriangleWithCornerColors::V3dBezierTriangleWithCornerColors(xdr::ixstream& xdrFile)
+V3dBezierTriangleWithCornerColors::V3dBezierTriangleWithCornerColors(xdr::ixstream& xdrFile, BOOL doublePrecision)
     : V3dObject{ ObjectTypes::BEZIER_TRIANGLE_COLOR } { 
         for (int i = 0; i < 10; ++i) {
-            xdrFile >> controlPoints[i].x;
-            xdrFile >> controlPoints[i].y;
-            xdrFile >> controlPoints[i].z;
+            controlPoints[i].x = readReal(xdrFile, doublePrecision);
+            controlPoints[i].y = readReal(xdrFile, doublePrecision);
+            controlPoints[i].z = readReal(xdrFile, doublePrecision);
         }
 
         xdrFile >> centerIndex;
@@ -108,12 +110,12 @@ std::vector<unsigned int> V3dBezierTriangleWithCornerColors::getIndices() {
 }
 
 
-V3dStraightPlanarQuad::V3dStraightPlanarQuad(xdr::ixstream& xdrFile)
+V3dStraightPlanarQuad::V3dStraightPlanarQuad(xdr::ixstream& xdrFile, BOOL doublePrecision)
     : V3dObject{ ObjectTypes::QUAD } {
         for (int i = 0; i < 4; ++i) {
-            xdrFile >> vertices[i].x;
-            xdrFile >> vertices[i].y;
-            xdrFile >> vertices[i].z;
+            vertices[i].x = readReal(xdrFile, doublePrecision);
+            vertices[i].y = readReal(xdrFile, doublePrecision);
+            vertices[i].z = readReal(xdrFile, doublePrecision);
         }
 
         xdrFile >> centerIndex;
@@ -131,12 +133,12 @@ std::vector<unsigned int> V3dStraightPlanarQuad::getIndices() {
 }
 
 
-V3dStraightTriangle::V3dStraightTriangle(xdr::ixstream& xdrFile)
+V3dStraightTriangle::V3dStraightTriangle(xdr::ixstream& xdrFile, BOOL doublePrecision)
     : V3dObject{ ObjectTypes::TRIANGLE } { 
         for (int i = 0; i < 3; ++i) {
-            xdrFile >> vertices[i].x;
-            xdrFile >> vertices[i].y;
-            xdrFile >> vertices[i].z;
+            vertices[i].x = readReal(xdrFile, doublePrecision);
+            vertices[i].y = readReal(xdrFile, doublePrecision);
+            vertices[i].z = readReal(xdrFile, doublePrecision);
         }
 
         xdrFile >> centerIndex;
@@ -148,8 +150,8 @@ std::vector<float> V3dStraightTriangle::getVertices() {
     std::vector<float> out{};
 
     for (auto& ver : vertices) {
-        out.push_back(static_cast<float>(ver.x));
-        out.push_back(static_cast<float>(ver.y));
+        out.push_back(ver.x);
+        out.push_back(ver.y);
         out.push_back(0.0f);
     }
 
@@ -165,12 +167,12 @@ std::vector<unsigned int> V3dStraightTriangle::getIndices() {
 }
 
 
-V3dStraightPlanarQuadWithCornderColors::V3dStraightPlanarQuadWithCornderColors(xdr::ixstream& xdrFile)
+V3dStraightPlanarQuadWithCornderColors::V3dStraightPlanarQuadWithCornderColors(xdr::ixstream& xdrFile, BOOL doublePrecision)
     : V3dObject{ ObjectTypes::QUAD_COLOR } { 
         for (int i = 0; i < 4; ++i) {
-            xdrFile >> vertices[i].x;
-            xdrFile >> vertices[i].y;
-            xdrFile >> vertices[i].z;
+            vertices[i].x = readReal(xdrFile, doublePrecision);
+            vertices[i].y = readReal(xdrFile, doublePrecision);
+            vertices[i].z = readReal(xdrFile, doublePrecision);
         }
 
         xdrFile >> centerIndex;
@@ -195,12 +197,12 @@ std::vector<unsigned int> V3dStraightPlanarQuadWithCornderColors::getIndices() {
 }
 
 
-V3dStraightTriangleWithCornerColors::V3dStraightTriangleWithCornerColors(xdr::ixstream& xdrFile)
+V3dStraightTriangleWithCornerColors::V3dStraightTriangleWithCornerColors(xdr::ixstream& xdrFile, BOOL doublePrecision)
     : V3dObject{ ObjectTypes::TRIANGLE_COLOR } { 
         for (int i = 0; i < 3; ++i) {
-            xdrFile >> vertices[i].x;
-            xdrFile >> vertices[i].y;
-            xdrFile >> vertices[i].z;
+            vertices[i].x = readReal(xdrFile, doublePrecision);
+            vertices[i].y = readReal(xdrFile, doublePrecision);
+            vertices[i].z = readReal(xdrFile, doublePrecision);
         }
 
         xdrFile >> centerIndex;
@@ -225,7 +227,7 @@ std::vector<unsigned int> V3dStraightTriangleWithCornerColors::getIndices() {
 }
 
 
-V3dTriangleGroup::V3dTriangleGroup(xdr::ixstream& xdrFile)
+V3dTriangleGroup::V3dTriangleGroup(xdr::ixstream& xdrFile, BOOL doublePrecision)
     : V3dObject{ ObjectTypes::TRIANGLES } { 
         nI = 0;
         xdrFile >> nI;
@@ -234,18 +236,18 @@ V3dTriangleGroup::V3dTriangleGroup(xdr::ixstream& xdrFile)
         xdrFile >> nP;
         vertexPositions.resize(nP);
         for (UINT i = 0; i < nP; ++i) {
-            xdrFile >> vertexPositions[i].x;
-            xdrFile >> vertexPositions[i].y;
-            xdrFile >> vertexPositions[i].z;
+            vertexPositions[i].x = readReal(xdrFile, doublePrecision);
+            vertexPositions[i].y = readReal(xdrFile, doublePrecision);
+            vertexPositions[i].z = readReal(xdrFile, doublePrecision);
         }
 
         nN = 0;
         xdrFile >> nN;
         vertexNormalArray.resize(nN);
         for (UINT i = 0; i < nN; ++i) {
-            xdrFile >> vertexNormalArray[i].x;
-            xdrFile >> vertexNormalArray[i].y;
-            xdrFile >> vertexNormalArray[i].z;
+            vertexNormalArray[i].x = readReal(xdrFile, doublePrecision);
+            vertexNormalArray[i].y = readReal(xdrFile, doublePrecision);
+            vertexNormalArray[i].z = readReal(xdrFile, doublePrecision);
         }
 
         xdrFile >> explicitNI;
@@ -298,10 +300,8 @@ std::vector<float> V3dTriangleGroup::getVertices() {
     std::vector<TRIPLE> vertices;
     vertices.resize(nP);
 
-    // std::cout << "==================================" << std::endl;
     for(size_t i = 0; i < nI; ++i) {
         std::array<unsigned int, 3> PI = positionIndices[i];
-        // const uint32_t *PI=PP[i];
         uint32_t PI0 = PI[0];
         uint32_t PI1 = PI[1];
         uint32_t PI2 = PI[2];
@@ -309,23 +309,9 @@ std::vector<float> V3dTriangleGroup::getVertices() {
         TRIPLE P1 = vertexPositions[PI1];
         TRIPLE P2 = vertexPositions[PI2];
 
-        // std::cout << "0: " << PI0 << ", 1: " << PI1 << ", 2: " << PI2 << std::endl;
-
-        // data.Vertices[PI0]=VertexData(P0,N[NI[0]]);
-        // data.Vertices[PI1]=VertexData(P1,N[NI[1]]);
-        // data.Vertices[PI2]=VertexData(P2,N[NI[2]]);
-
         vertices[PI0] = P0;
         vertices[PI1] = P1;
         vertices[PI2] = P2;
-
-        // triple Q[]={P0,P1,P2};
-        // if(!offscreen(3,Q)) {
-        //     size_t i3=3*i;
-        //     data.indices[i3]=PI0;
-        //     data.indices[i3+1]=PI1;
-        //     data.indices[i3+2]=PI2;
-        // }
     }
 
     for (auto vertex : vertices) {
@@ -342,59 +328,28 @@ std::vector<unsigned int> V3dTriangleGroup::getIndices() {
 
     out.resize(nI * 3);
 
-    // int j = 0;
-    // for (int i = 0; i < nI * 3; i += 3) {
-    //     std::array<unsigned int, 3> currentIndices = positionIndices[j];
-    //     UINT index0 = currentIndices[0];
-    //     UINT index1 = currentIndices[1];
-    //     UINT index2 = currentIndices[2];
-
-    //     out[i + 0] = index0;
-    //     out[i + 1] = index1;
-    //     out[i + 2] = index2;
-    //     j++;
-    // }
-
-
     for(size_t i = 0; i < nI; ++i) {
         std::array<unsigned int, 3> PI = positionIndices[i];
-        // const uint32_t *PI=PP[i];
+
         uint32_t PI0 = PI[0];
         uint32_t PI1 = PI[1];
         uint32_t PI2 = PI[2];
-        // TRIPLE P0 = vertexPositions[PI0];
-        // TRIPLE P1 = vertexPositions[PI1];
-        // TRIPLE P2 = vertexPositions[PI2];
 
-        // data.Vertices[PI0]=VertexData(P0,N[NI[0]]);
-        // data.Vertices[PI1]=VertexData(P1,N[NI[1]]);
-        // data.Vertices[PI2]=VertexData(P2,N[NI[2]]);
-
-        // vertices[PI0] = P0;
-        // vertices[PI1] = P1;
-        // vertices[PI2] = P2;
-
-        // triple Q[]={P0,P1,P2};
-        // if(!offscreen(3,Q)) {
         size_t i3=3*i;
         out[i3 + 0] = PI0;
         out[i3 + 1] = PI1;
         out[i3 + 2] = PI2;
-        //     data.indices[i3]=PI0;
-        //     data.indices[i3+1]=PI1;
-        //     data.indices[i3+2]=PI2;
-        // }
     }
 
     return out;
 }
 
 
-V3dSphere::V3dSphere(xdr::ixstream& xdrFile)
+V3dSphere::V3dSphere(xdr::ixstream& xdrFile, BOOL doublePrecision)
     : V3dObject{ ObjectTypes::SPHERE } { 
-        xdrFile >> center.x;
-        xdrFile >> center.y;
-        xdrFile >> center.z;
+        center.x = readReal(xdrFile, doublePrecision);
+        center.y = readReal(xdrFile, doublePrecision);
+        center.z = readReal(xdrFile, doublePrecision);
 
         xdrFile >> radius;
 
@@ -413,19 +368,20 @@ std::vector<unsigned int> V3dSphere::getIndices() {
 }
 
 
-V3dHemiSphere::V3dHemiSphere(xdr::ixstream& xdrFile)
+V3dHemiSphere::V3dHemiSphere(xdr::ixstream& xdrFile, BOOL doublePrecision)
     : V3dObject{ ObjectTypes::HALF_SPHERE } { 
-        xdrFile >> center.x;
-        xdrFile >> center.y;
-        xdrFile >> center.z;
+        center.x = readReal(xdrFile, doublePrecision);
+        center.y = readReal(xdrFile, doublePrecision);
+        center.z = readReal(xdrFile, doublePrecision);
 
-        xdrFile >> radius;
+        radius = readReal(xdrFile, doublePrecision);
 
         xdrFile >> centerIndex;
         xdrFile >> materialIndex;    
 
-        xdrFile >> polarAngle;
-        xdrFile >> azimuthalAngle;
+        polarAngle = readReal(xdrFile, doublePrecision);
+        azimuthalAngle = readReal(xdrFile, doublePrecision);
+
     }
 
 std::vector<float> V3dHemiSphere::getVertices() {
@@ -439,19 +395,19 @@ std::vector<unsigned int> V3dHemiSphere::getIndices() {
 }
 
 
-V3dDisk::V3dDisk(xdr::ixstream& xdrFile)
+V3dDisk::V3dDisk(xdr::ixstream& xdrFile, BOOL doublePrecision)
     : V3dObject{ ObjectTypes::DISK } { 
-        xdrFile >> center.x;
-        xdrFile >> center.y;
-        xdrFile >> center.z;
+        center.x = readReal(xdrFile, doublePrecision);
+        center.y = readReal(xdrFile, doublePrecision);
+        center.z = readReal(xdrFile, doublePrecision);
 
-        xdrFile >> radius;
+        radius = readReal(xdrFile, doublePrecision);
 
         xdrFile >> centerIndex;
         xdrFile >> materialIndex;    
 
-        xdrFile >> polarAngle;
-        xdrFile >> azimuthalAngle;
+        polarAngle = readReal(xdrFile, doublePrecision);
+        azimuthalAngle = readReal(xdrFile, doublePrecision);
     }
 
 std::vector<float> V3dDisk::getVertices() {
@@ -465,21 +421,21 @@ std::vector<unsigned int> V3dDisk::getIndices() {
 }
 
 
-V3dCylinder::V3dCylinder(xdr::ixstream& xdrFile)
+V3dCylinder::V3dCylinder(xdr::ixstream& xdrFile, BOOL doublePrecision)
     : V3dObject{ ObjectTypes::CYLINDER } { 
-        xdrFile >> center.x;
-        xdrFile >> center.y;
-        xdrFile >> center.z;
+        center.x = readReal(xdrFile, doublePrecision);
+        center.y = readReal(xdrFile, doublePrecision);
+        center.z = readReal(xdrFile, doublePrecision);
 
-        xdrFile >> radius;
+        radius = readReal(xdrFile, doublePrecision);
 
-        xdrFile >> height;
+        height = readReal(xdrFile, doublePrecision);
 
         xdrFile >> centerIndex;
         xdrFile >> materialIndex;    
 
-        xdrFile >> polarAngle;
-        xdrFile >> azimuthalAngle;
+        polarAngle = readReal(xdrFile, doublePrecision);
+        azimuthalAngle = readReal(xdrFile, doublePrecision);
     }
 
 std::vector<float> V3dCylinder::getVertices() {
@@ -493,15 +449,16 @@ std::vector<unsigned int> V3dCylinder::getIndices() {
 }
 
 
-V3dTube::V3dTube(xdr::ixstream& xdrFile)
+V3dTube::V3dTube(xdr::ixstream& xdrFile, BOOL doublePrecision)
     : V3dObject{ ObjectTypes::TUBE } { 
         for (UINT i = 0; i < 4; ++i) {
-            xdrFile >> controlPoints[i].x;
-            xdrFile >> controlPoints[i].y;
-            xdrFile >> controlPoints[i].z;
+            controlPoints[i].x = readReal(xdrFile, doublePrecision);
+            controlPoints[i].y = readReal(xdrFile, doublePrecision);
+            controlPoints[i].z = readReal(xdrFile, doublePrecision);
         }
 
-        xdrFile >> width;
+        width = readReal(xdrFile, doublePrecision);
+
         xdrFile >> centerIndex;
         xdrFile >> materialIndex;
         xdrFile >> core;
@@ -518,12 +475,12 @@ std::vector<unsigned int> V3dTube::getIndices() {
 }
 
 
-V3dBezierCurve::V3dBezierCurve(xdr::ixstream& xdrFile)
+V3dBezierCurve::V3dBezierCurve(xdr::ixstream& xdrFile, BOOL doublePrecision)
     : V3dObject{ ObjectTypes::CURVE } { 
         for (UINT i = 0; i < 4; ++i) {
-            xdrFile >> controlPoints[i].x;
-            xdrFile >> controlPoints[i].y;
-            xdrFile >> controlPoints[i].z;
+            controlPoints[i].x = readReal(xdrFile, doublePrecision);
+            controlPoints[i].y = readReal(xdrFile, doublePrecision);
+            controlPoints[i].z = readReal(xdrFile, doublePrecision);
         }    
 
         xdrFile >> centerIndex;
@@ -541,12 +498,12 @@ std::vector<unsigned int> V3dBezierCurve::getIndices() {
 }
 
 
-V3dLineSegment::V3dLineSegment(xdr::ixstream& xdrFile)
+V3dLineSegment::V3dLineSegment(xdr::ixstream& xdrFile, BOOL doublePrecision)
     : V3dObject{ ObjectTypes::LINE } { 
         for (UINT i = 0; i < 2; ++i) {
-            xdrFile >> endpoints[i].x;
-            xdrFile >> endpoints[i].y;
-            xdrFile >> endpoints[i].z;
+            endpoints[i].x = readReal(xdrFile, doublePrecision);
+            endpoints[i].y = readReal(xdrFile, doublePrecision);
+            endpoints[i].z = readReal(xdrFile, doublePrecision);
         }    
 
         xdrFile >> centerIndex;
@@ -564,11 +521,11 @@ std::vector<unsigned int> V3dLineSegment::getIndices() {
 }
 
 
-V3dPixel::V3dPixel(xdr::ixstream& xdrFile)
+V3dPixel::V3dPixel(xdr::ixstream& xdrFile, BOOL doublePrecision)
     : V3dObject{ ObjectTypes::PIXEL } { 
-        xdrFile >> position.x;
-        xdrFile >> position.y;
-        xdrFile >> position.z;
+        position.x = readReal(xdrFile, doublePrecision);
+        position.y = readReal(xdrFile, doublePrecision);
+        position.z = readReal(xdrFile, doublePrecision);
 
         xdrFile >> centerIndex;
         xdrFile >> materialIndex;

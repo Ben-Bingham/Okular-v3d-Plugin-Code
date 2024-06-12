@@ -85,6 +85,7 @@ void V3dGenerator::generatePixmap(Okular::PixmapRequest* request) {
     glm::mat4 model = glm::mat4{ 1.0f };
 
 	glm::mat4 view = glm::mat4{ 1.0f };
+    view = glm::translate(view, { 0.0f, 0.0f, -10.0f });
 
 	glm::mat4 projection = glm::perspective(m_File->headerInfo.angleOfView, (float)width / (float)height, 0.1f, 10000.0f);
 

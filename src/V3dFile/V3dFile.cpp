@@ -7,6 +7,8 @@
 
 #include "xstream.h"
 
+#include "V3dUtil.h"
+
 // append array b onto array a with offset
 void appendOffset(std::vector<UINT>& a, const std::vector<UINT>& b, size_t offset) {
     size_t n=a.size();
@@ -76,9 +78,9 @@ V3dFile::V3dFile(const std::string& fileName) {
                 centers.resize(centersLength);
 
                 for (UINT i = 0; i < centersLength; ++i) {
-                    xdrFile >> centers[i].x;
-                    xdrFile >> centers[i].y;
-                    xdrFile >> centers[i].z;
+                    centers[i].x = readReal(xdrFile, doublePrecisionFlag);
+                    centers[i].y = readReal(xdrFile, doublePrecisionFlag);
+                    centers[i].z = readReal(xdrFile, doublePrecisionFlag);
                 }
             }
 
@@ -99,101 +101,120 @@ V3dFile::V3dFile(const std::string& fileName) {
                     case CANVAS_WIDTH:
                         xdrFile >> headerInfo.canvasWidth;   
                         break;     
+
                     case CANVAS_HEIGHT:
                         xdrFile >> headerInfo.canvasHeight; 
-                        break;      
+                        break;    
+
                     case ABSOLUTE:
                         xdrFile >> headerInfo.absolute;   
-                        break;        
+                        break;     
+
                     case MIN_BOUND:
-                        xdrFile >> headerInfo.minBound.x;
-                        xdrFile >> headerInfo.minBound.y;
-                        xdrFile >> headerInfo.minBound.z;  
-                        break;        
+                        headerInfo.minBound.x = readReal(xdrFile, doublePrecisionFlag);
+                        headerInfo.minBound.y = readReal(xdrFile, doublePrecisionFlag);
+                        headerInfo.minBound.z = readReal(xdrFile, doublePrecisionFlag);
+                        break; 
+
                     case MAX_BOUND:
-                        xdrFile >> headerInfo.maxBound.x;
-                        xdrFile >> headerInfo.maxBound.y;
-                        xdrFile >> headerInfo.maxBound.z; 
-                        break;          
+                        headerInfo.maxBound.x = readReal(xdrFile, doublePrecisionFlag);
+                        headerInfo.maxBound.y = readReal(xdrFile, doublePrecisionFlag);
+                        headerInfo.maxBound.z = readReal(xdrFile, doublePrecisionFlag);
+                        break;       
+
                     case ORTHOGRAPHIC:
                         xdrFile >> headerInfo.orthographic;   
                         break;     
+
                     case ANGLE_OF_VIEW:
-                        xdrFile >> headerInfo.angleOfView; 
+                        headerInfo.angleOfView = readReal(xdrFile, doublePrecisionFlag);
                         break;     
+
                     case INITIAL_ZOOM:
-                        xdrFile >> headerInfo.initialZoom;   
+                        headerInfo.initialZoom = readReal(xdrFile, doublePrecisionFlag);
                         break;     
+
                     case VIEWPORT_SHIFT:
-                        xdrFile >> headerInfo.viewportShift.x;
-                        xdrFile >> headerInfo.viewportShift.y;    
+                        headerInfo.viewportShift.x = readReal(xdrFile, doublePrecisionFlag);
+                        headerInfo.viewportShift.y = readReal(xdrFile, doublePrecisionFlag);
                         break;    
+
                     case VIEWPORT_MARGIN:
-                        xdrFile >> headerInfo.viewportMargin.x;
-                        xdrFile >> headerInfo.viewportMargin.y;    
+                        headerInfo.viewportMargin.x = readReal(xdrFile, doublePrecisionFlag);
+                        headerInfo.viewportMargin.y = readReal(xdrFile, doublePrecisionFlag); 
                         break;
+
                     case LIGHT:
-                        xdrFile >> headerInfo.light.direction.x;
-                        xdrFile >> headerInfo.light.direction.y;
-                        xdrFile >> headerInfo.light.direction.z;
+                        headerInfo.light.direction.x = readReal(xdrFile, doublePrecisionFlag);
+                        headerInfo.light.direction.y = readReal(xdrFile, doublePrecisionFlag); 
+                        headerInfo.light.direction.z = readReal(xdrFile, doublePrecisionFlag);
 
                         xdrFile >> headerInfo.light.color.r;
                         xdrFile >> headerInfo.light.color.g;       
                         xdrFile >> headerInfo.light.color.b;              
                         break;       
+
                     case BACKGROUND:
                         xdrFile >> headerInfo.background.r;
                         xdrFile >> headerInfo.background.g;
                         xdrFile >> headerInfo.background.b;
                         xdrFile >> headerInfo.background.a; 
                         break;      
+
                     case ZOOM_FACTOR:
-                        xdrFile >> headerInfo.zoomFactor;    
+                        headerInfo.zoomFactor = readReal(xdrFile, doublePrecisionFlag);   
                         break;    
+
                     case ZOOM_PINCH_FACTOR:
-                        xdrFile >> headerInfo.zoomPinchFactor;  
+                        headerInfo.zoomPinchFactor = readReal(xdrFile, doublePrecisionFlag);   
                         break;
+
                     case ZOOM_PINCH_CAP:
-                        xdrFile >> headerInfo.zoomPinchCap;     
+                        headerInfo.zoomPinchCap = readReal(xdrFile, doublePrecisionFlag);   
                         break;
+
                     case ZOOM_STEP:
-                        xdrFile >> headerInfo.zoomStep;          
+                        headerInfo.zoomStep = readReal(xdrFile, doublePrecisionFlag);            
                         break;
+
                     case SHIFT_HOLD_DISTANCE:
-                        xdrFile >> headerInfo.shiftHoldDistance;
+                        headerInfo.shiftHoldDistance = readReal(xdrFile, doublePrecisionFlag);   
                         break;
+
                     case SHIFT_WAIT_TIME:
-                        xdrFile >> headerInfo.shiftWaitTime;    
+                        headerInfo.shiftWaitTime = readReal(xdrFile, doublePrecisionFlag);   
                         break;
+                        
                     case VIBRATE_TIME:
-                        xdrFile >> headerInfo.vibrateTime;    
+                        // xdrFile >> headerInfo.vibrateTime;   
+                        headerInfo.vibrateTime = readReal(xdrFile, doublePrecisionFlag);    
                         break;    
                 }
             }
             break;
 
         case ObjectTypes::LINE:
-            m_Objects.push_back(std::move(std::make_unique<V3dLineSegment>(xdrFile)));
+            m_Objects.push_back(std::move(std::make_unique<V3dLineSegment>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::TRIANGLE:
-            m_Objects.push_back(std::move(std::make_unique<V3dStraightTriangle>(xdrFile)));
+            m_Objects.push_back(std::move(std::make_unique<V3dStraightTriangle>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::QUAD:
-            m_Objects.push_back(std::move(std::make_unique<V3dStraightPlanarQuad>(xdrFile)));
+            m_Objects.push_back(std::move(std::make_unique<V3dStraightPlanarQuad>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::CURVE:
-            m_Objects.push_back(std::move(std::make_unique<V3dBezierCurve>(xdrFile)));
+            m_Objects.push_back(std::move(std::make_unique<V3dBezierCurve>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::BEZIER_TRIANGLE:
-            m_Objects.push_back(std::move(std::make_unique<V3dBezierTriangle>(xdrFile)));
+            m_Objects.push_back(std::move(std::make_unique<V3dBezierTriangle>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::BEZIER_PATCH:
-            m_Objects.push_back(std::move(std::make_unique<V3dBezierPatch>(xdrFile)));
+            m_Objects.push_back(std::move(std::make_unique<V3dBezierPatch>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::LINE_COLOR:
@@ -201,11 +222,11 @@ V3dFile::V3dFile(const std::string& fileName) {
             break;
 
         case ObjectTypes::TRIANGLE_COLOR:
-            m_Objects.push_back(std::move(std::make_unique<V3dStraightTriangleWithCornerColors>(xdrFile)));
+            m_Objects.push_back(std::move(std::make_unique<V3dStraightTriangleWithCornerColors>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::QUAD_COLOR:
-            m_Objects.push_back(std::move(std::make_unique<V3dStraightPlanarQuadWithCornderColors>(xdrFile)));
+            m_Objects.push_back(std::move(std::make_unique<V3dStraightPlanarQuadWithCornderColors>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::CURVE_COLOR:
@@ -213,35 +234,35 @@ V3dFile::V3dFile(const std::string& fileName) {
             break;
 
         case ObjectTypes::BEZIER_TRIANGLE_COLOR:
-            m_Objects.push_back(std::move(std::make_unique<V3dBezierTriangleWithCornerColors>(xdrFile)));
+            m_Objects.push_back(std::move(std::make_unique<V3dBezierTriangleWithCornerColors>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::BEZIER_PATCH_COLOR:
-            m_Objects.push_back(std::move(std::make_unique<V3dBezierPatchWithCornerColors>(xdrFile)));
+            m_Objects.push_back(std::move(std::make_unique<V3dBezierPatchWithCornerColors>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::TRIANGLES:
-            m_Objects.push_back(std::move(std::make_unique<V3dTriangleGroup>(xdrFile)));
+            m_Objects.push_back(std::move(std::make_unique<V3dTriangleGroup>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::DISK:
-            m_Objects.push_back(std::move(std::make_unique<V3dDisk>(xdrFile)));
+            m_Objects.push_back(std::move(std::make_unique<V3dDisk>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::CYLINDER:
-            m_Objects.push_back(std::move(std::make_unique<V3dCylinder>(xdrFile)));
+            m_Objects.push_back(std::move(std::make_unique<V3dCylinder>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::TUBE:
-            m_Objects.push_back(std::move(std::make_unique<V3dTube>(xdrFile)));
+            m_Objects.push_back(std::move(std::make_unique<V3dTube>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::SPHERE:
-            m_Objects.push_back(std::move(std::make_unique<V3dSphere>(xdrFile)));
+            m_Objects.push_back(std::move(std::make_unique<V3dSphere>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::HALF_SPHERE:
-            m_Objects.push_back(std::move(std::make_unique<V3dHemiSphere>(xdrFile)));
+            m_Objects.push_back(std::move(std::make_unique<V3dHemiSphere>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::ANIMATION:
@@ -249,7 +270,7 @@ V3dFile::V3dFile(const std::string& fileName) {
             break;
 
         case ObjectTypes::PIXEL:
-            m_Objects.push_back(std::move(std::make_unique<V3dPixel>(xdrFile)));
+            m_Objects.push_back(std::move(std::make_unique<V3dPixel>(xdrFile, doublePrecisionFlag)));
             break;
         }
     }
