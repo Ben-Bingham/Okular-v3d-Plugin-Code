@@ -123,13 +123,24 @@ V3dStraightPlanarQuad::V3dStraightPlanarQuad(xdr::ixstream& xdrFile, BOOL double
     }
 
 std::vector<float> V3dStraightPlanarQuad::getVertices() {
-    std::cout << "ERROR: V3dStraightPlanarQuad cannot currently give vertices" << std::endl;
-    return std::vector<float>{};
+    std::vector<float> out{};
+
+    for (auto& ver : vertices) {
+        out.push_back(ver.x);
+        out.push_back(ver.y);
+        out.push_back(ver.z);
+    }
+
+    return out;
 }
 
 std::vector<unsigned int> V3dStraightPlanarQuad::getIndices() {
-    std::cout << "ERROR: V3dStraightPlanarQuad cannot currently give indices" << std::endl;
-    return std::vector<unsigned int>{};
+    std::vector<unsigned int> out {
+        0, 1, 2,
+        0, 2, 3
+    };
+
+    return out;
 }
 
 
@@ -143,7 +154,6 @@ V3dStraightTriangle::V3dStraightTriangle(xdr::ixstream& xdrFile, BOOL doublePrec
 
         xdrFile >> centerIndex;
         xdrFile >> materialIndex;
-
     }
 
 std::vector<float> V3dStraightTriangle::getVertices() {
@@ -152,7 +162,7 @@ std::vector<float> V3dStraightTriangle::getVertices() {
     for (auto& ver : vertices) {
         out.push_back(ver.x);
         out.push_back(ver.y);
-        out.push_back(0.0f);
+        out.push_back(ver.z);
     }
 
     return out;
