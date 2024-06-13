@@ -21,6 +21,8 @@
 
 #define LOG(...) printf(__VA_ARGS__)
 
+#define VULKAN_DEBUG 1
+
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugMessageCallback(
 	VkDebugReportFlagsEXT flags,
 	VkDebugReportObjectTypeEXT objectType,
