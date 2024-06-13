@@ -125,10 +125,24 @@ V3dStraightPlanarQuad::V3dStraightPlanarQuad(xdr::ixstream& xdrFile, BOOL double
 std::vector<float> V3dStraightPlanarQuad::getVertexData() {
     std::vector<float> out{};
 
+
+    TRIPLE p1 = vertices[0];
+    TRIPLE p2 = vertices[1];
+    TRIPLE p3 = vertices[2];
+
+    TRIPLE A = p2 - p1;
+    TRIPLE B = p3 - p1;
+
+    TRIPLE N = glm::cross(A, B);
+
     for (auto& ver : vertices) {
         out.push_back(ver.x);
         out.push_back(ver.y);
         out.push_back(ver.z);
+
+        out.push_back(N.x);
+        out.push_back(N.y);
+        out.push_back(N.z);
     }
 
     return out;
@@ -159,10 +173,23 @@ V3dStraightTriangle::V3dStraightTriangle(xdr::ixstream& xdrFile, BOOL doublePrec
 std::vector<float> V3dStraightTriangle::getVertexData() {
     std::vector<float> out{};
 
+    TRIPLE p1 = vertices[0];
+    TRIPLE p2 = vertices[1];
+    TRIPLE p3 = vertices[2];
+
+    TRIPLE A = p2 - p1;
+    TRIPLE B = p3 - p1;
+
+    TRIPLE N = glm::cross(A, B);
+
     for (auto& ver : vertices) {
         out.push_back(ver.x);
         out.push_back(ver.y);
         out.push_back(ver.z);
+
+        out.push_back(N.x);
+        out.push_back(N.y);
+        out.push_back(N.z);
     }
 
     return out;
@@ -324,10 +351,14 @@ std::vector<float> V3dTriangleGroup::getVertexData() {
         vertices[PI2] = P2;
     }
 
-    for (auto vertex : vertices) {
-        out.push_back(vertex.x);
-        out.push_back(vertex.y);
-        out.push_back(vertex.z);
+    for (int i = 0; i < vertices.size(); ++i) {
+        out.push_back(vertices[i].x);
+        out.push_back(vertices[i].y);
+        out.push_back(vertices[i].z);
+
+        out.push_back(vertexNormalArray[i].x);
+        out.push_back(vertexNormalArray[i].y);
+        out.push_back(vertexNormalArray[i].z);
     }
 
     return out;

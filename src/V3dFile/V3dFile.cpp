@@ -281,7 +281,7 @@ V3dFile::V3dFile(const std::string& fileName) {
         std::vector<float> vert = object->getVertexData();
         std::vector<unsigned int> ind = object->getIndices();
 
-        appendOffset(indices, ind, vertices.size() / 3);
+        appendOffset(indices, ind, vertices.size() / 6);
         vertices.insert(vertices.end(), vert.begin(), vert.end());
     }
 }
