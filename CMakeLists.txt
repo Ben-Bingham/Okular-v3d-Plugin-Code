@@ -1,7 +1,7 @@
 remove_definitions(-DTRANSLATION_DOMAIN="okular")
 add_definitions(-DTRANSLATION_DOMAIN="okular_v3d" -DGLFW_INCLUDE_VULKAN -DVULKAN_DEBUG=1)
 
-include_directories("src/Rendering" "src/" "src/V3dFile" "dependencies/" "dependencies/VulkanTools" "/usr/include/tirpc")
+include_directories("src/Rendering" "src/" "src/V3dFile" "dependencies/" "dependencies/VulkanTools" "/usr/include/tirpc" "/home/benjaminb/kde/build/kparts/src/" "/home/benjaminb/kde/build/kparts/")
 
 add_compile_options(-fexceptions)
 
@@ -10,7 +10,7 @@ set(okularGenerator_v3d_SRCS src/v3d_generator.cpp src/Rendering/renderheadless.
 
 okular_add_generator(okularGenerator_v3d ${okularGenerator_v3d_SRCS})
 
-target_link_libraries(okularGenerator_v3d okularcore Qt5::Core KF5::I18n GLEW glfw GL vulkan dl pthread X11 Xxf86vm Xrandr Xi tirpc)
+target_link_libraries(okularGenerator_v3d okularcore Qt5::Core KF5::I18n GLEW glfw GL vulkan dl pthread X11 Xxf86vm Xrandr Xi tirpc KF5::Parts)
 
 #list( APPEND CMAKE_INSTALL_RPATH "/usr/lib/dependencies" )
 set_target_properties(okularGenerator_v3d

@@ -15,6 +15,11 @@
 #include "renderheadless.h"
 #include "V3dFile/V3dFile.h"
 
+// #include "../../../core/generator.h"
+#include <core/generator.h>
+// namespace Okular {
+//     struct Rotation;
+// }
 class V3dGenerator : public Okular::Generator {
     Q_OBJECT
     Q_INTERFACES(Okular::Generator)
@@ -26,6 +31,10 @@ public:
     void generatePixmap(Okular::PixmapRequest* request) override;
     bool loadDocument(const QString &fileName, QVector<Okular::Page*> &pages) override;
     bool doCloseDocument() override;
+
+    void rotationChanged(Okular::Rotation orientation, Okular::Rotation oldOrientation) override;
+
+    bool event(QEvent* e) override;
 
 private:
     static int m_V3dGeneratorCount;

@@ -27,6 +27,11 @@
 #include <QtWidgets>
 #include <QPushButton>
 
+#include <thread>
+#include <chrono>
+
+#include <shell/shell.h>
+
 OKULAR_EXPORT_PLUGIN(V3dGenerator, "libokularGenerator_v3d.json")
 
 void error_callback(int error, const char* description) {
@@ -36,12 +41,74 @@ void error_callback(int error, const char* description) {
 V3dGenerator::V3dGenerator(QObject *parent, const QVariantList &args) {
     Q_UNUSED(parent);
     Q_UNUSED(args);
-    
+
     if (m_V3dGeneratorCount == 0) {
         m_HeadlessRenderer = new HeadlessRenderer{ "/home/benjaminb/kde/src/okular/generators/Okular-v3d-Plugin-Code/shaders/" };
     }
 
     m_V3dGeneratorCount++;
+
+    int i = 0;
+    for (QWidget* widget : QApplication::allWidgets()) {
+        if (widget->inherits("QMainWindow")) {
+            // ++i;
+            // if (stackedWidget != nullptr) {
+            //     // ++i;
+            //     // std::cout << "Widget has: " << stackedWidget->count() << " Children" << std::endl;
+            // }
+
+            // This is the shell
+            QMainWindow* mainWindowWidget = dynamic_cast<QMainWindow*>(widget);
+
+            // Shell* shellWidget = dynamic_cast<Shell*>(widget);
+            // Shell* shell = qobject_cast<Shell*>(widget);
+            // if (shell != nullptr) {
+            //     std::cout << "FOUND SHELL WIDGET" << std::endl;
+            // }
+
+            if (mainWindowWidget != nullptr) {
+                std::cout << "FOUND mainWindowWiget" << std::endl;
+                // mainWindowWidget->widget();
+
+                std::cout << "Found : " << mainWindowWidget->children().size() <<  " Children" << std::endl;
+                for (auto obj : mainWindowWidget->children()) {
+                    // if (obj->inherits("")) {
+
+                    // }
+
+                    Part* part = qobject_cast<Part*>(obj);
+
+                    if (part != nullptr) {
+                        i++;
+                    }
+                }
+
+
+
+                
+
+                // QWidget* centralWidget = mainWindowWiget->centralWidget();
+
+                // QStackedWidget* stackedWidget = dynamic_cast<QStackedWidget*>(centralWidget);
+                // if (stackedWidget != nullptr) {
+                //     std::cout << "FOUND CENTRAL WIDGEt" << std::endl;
+                //     // ++i;
+                //     std::cout << "Widget has: " << stackedWidget->count() << " Children" << std::endl;
+                //     // stackedWidget->addWidget(this);
+                }
+            // }
+
+
+        }
+
+        // QStackedWidget* stackedWidget = dynamic_cast<QStackedWidget*>(widget);
+        // if (stackedWidget != nullptr) {
+        //     ++i;
+        //     std::cout << "Widget has: " << stackedWidget->count() << " Children" << std::endl;
+        // }
+    }
+
+    std::cout << "FOUND : " << i << "WIDGETS" << std::endl;
 }
 
 V3dGenerator::~V3dGenerator() {
@@ -54,6 +121,21 @@ V3dGenerator::~V3dGenerator() {
 
 bool V3dGenerator::doCloseDocument() {
     return true;
+}
+
+void V3dGenerator::rotationChanged(Okular::Rotation orientation, Okular::Rotation oldOrientation) {
+    std::cout << "Rotation Changed ffffffffffffffffffffffffffffffffffffffffffffffffffffff" << std::endl;
+}
+
+
+bool V3dGenerator::event(QEvent* e) {
+    std::cout << "GOt an eventffffffffffaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaffffffff" << std::endl;
+    if (e->type() == QEvent::MouseButtonPress) {
+        std::cout << "BuToNon PreSe sfjsd;lkdfj" << std::endl;
+        return true;
+    }
+
+    return Okular::Generator::event(e);
 }
 
 bool V3dGenerator::loadDocument(const QString &fileName, QVector<Okular::Page *> &pagesVector) {
@@ -74,7 +156,10 @@ bool V3dGenerator::loadDocument(const QString &fileName, QVector<Okular::Page *>
     return true;
 }
 
+bool ran = false;
 void V3dGenerator::generatePixmap(Okular::PixmapRequest* request) {
+    std::cout << "Generating pixmap" << std::endl;
+
     std::vector<float> vertices = m_File->vertices;
     std::vector<unsigned int> indices = m_File->indices;
 
@@ -121,9 +206,32 @@ void V3dGenerator::generatePixmap(Okular::PixmapRequest* request) {
 
     image = image.mirrored(false, true);
 
-    request->page()->setPixmap(request->observer(), new QPixmap(QPixmap::fromImage(image)));
+    QPixmap* pixmap = new QPixmap(QPixmap::fromImage(image));
+    request->page()->setPixmap(request->observer(), pixmap);
 
+    // for (int i = 0; i < 5; ++i) {
     signalPixmapRequestDone(request);
+
+    // using namespace std::this_thread; // sleep_for, sleep_until
+    // using namespace std::chrono; // nanoseconds, system_clock, seconds
+
+    // sleep_for(5s);
+    // std::cout << "Done sleeping" << std::endl;
+
+    // std::thread t1{[](){
+    //     std::cout << "On a new thread" << std::endl;
+    // }};
+
+    // t1.join();
+
+
+                // signalPixmapRequestDone(request);
+    // }
+    
+    // if (!ran) {
+    //     generatePixmap(request);
+    //     ran = true;
+    // }
 }
 
 int V3dGenerator::m_V3dGeneratorCount{ 0 };
