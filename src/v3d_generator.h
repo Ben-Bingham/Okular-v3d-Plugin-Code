@@ -22,8 +22,14 @@
 
 class Helper : public QAbstractScrollArea {
 public:
-    void callProtected(QAbstractScrollArea* obj, QWheelEvent* event) {
+    void callWheelEvent(QAbstractScrollArea* obj, QWheelEvent* event) {
         void (QAbstractScrollArea::*funcPtr)(QWheelEvent*) = &Helper::wheelEvent;
+
+        (obj->*funcPtr)(event);
+    }
+
+    void callMouseReleaseEvent(QAbstractScrollArea* obj, QMouseEvent* event) {
+        void (QAbstractScrollArea::*funcPtr)(QMouseEvent*) = &Helper::mouseReleaseEvent;
 
         (obj->*funcPtr)(event);
     }
@@ -44,6 +50,7 @@ public:
     bool doCloseDocument() override;
 
     void refreshPixmap();
+    glm::vec4 clearColor{ 1.0f, 0.0f, 0.0f, 1.0f };
 
 private:
     static int m_V3dGeneratorCount;

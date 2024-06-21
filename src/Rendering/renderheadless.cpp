@@ -539,7 +539,7 @@ void HeadlessRenderer::createGraphicsPipeline() {
 	VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineCreateInfo, nullptr, &pipeline));
 }
 
-void HeadlessRenderer::recordCommandBuffer(int targetWidth, int targetHeight, size_t indexCount, const glm::mat4& mvp) {	
+void HeadlessRenderer::recordCommandBuffer(int targetWidth, int targetHeight, size_t indexCount, const glm::mat4& mvp, const glm::vec4& clearColor) {	
 	VkCommandBuffer commandBuffer;
 	VkCommandBufferAllocateInfo cmdBufAllocateInfo =
 		vks::initializers::commandBufferAllocateInfo(commandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY, 1);
@@ -551,7 +551,7 @@ void HeadlessRenderer::recordCommandBuffer(int targetWidth, int targetHeight, si
 	VK_CHECK_RESULT(vkBeginCommandBuffer(commandBuffer, &cmdBufInfo));
 
 	VkClearValue clearValues[2];
-	clearValues[0].color = { { 1.0f, 1.0f, 1.0f, 1.0f } };
+	clearValues[0].color = { { clearColor.r, clearColor.g, clearColor.b, clearColor.a } };
 	clearValues[1].depthStencil = { 1.0f, 0 };
 
 	VkRenderPassBeginInfo renderPassBeginInfo = {};
@@ -707,7 +707,7 @@ unsigned char* HeadlessRenderer::copyToHost(int targetWidth, int targetHeight, V
 	return returnData;
 }
 
-unsigned char* HeadlessRenderer::render(int targetWidth, int targetHeight, VkSubresourceLayout* imageSubresourceLayout, const std::vector<float>& vertices, const std::vector<unsigned int>& indices, const glm::mat4& mvp) {	
+unsigned char* HeadlessRenderer::render(int targetWidth, int targetHeight, VkSubresourceLayout* imageSubresourceLayout, const std::vector<float>& vertices, const std::vector<unsigned int>& indices, const glm::mat4& mvp, const glm::vec4& clearColor) {	
 	createInstance();
 	createPhysicalDevice();
 
@@ -735,7 +735,7 @@ unsigned char* HeadlessRenderer::render(int targetWidth, int targetHeight, VkSub
 	createAttachments(colorFormat, depthFormat, targetWidth, targetHeight);
 	createRenderPipeline(colorFormat, depthFormat, targetWidth, targetHeight);
 	createGraphicsPipeline();
-	recordCommandBuffer(targetWidth, targetHeight, indices.size(), mvp);
+	recordCommandBuffer(targetWidth, targetHeight, indices.size(), mvp, clearColor);
 
 	unsigned char* returnData = copyToHost(targetWidth, targetHeight, imageSubresourceLayout);
 

@@ -50,20 +50,37 @@ bool EventFilter::eventFilter(QObject *object, QEvent *event) {
         QMouseEvent* mouseMove = dynamic_cast<QMouseEvent*>(event);
 
         if (mouseMove != nullptr) {
-            // std::cout << "X: " << mouseMove->globalPos().x() << ", Y: " << mouseMove->globalPos().y() << std::endl;
+            std::cout << "X: " << mouseMove->globalPos().x() << ", Y: " << mouseMove->globalPos().y() << std::endl;
+
+            float value = (((float)mouseMove->globalPos().y() / 2.0f) / 250.0f);
+
+            if (value > 1.0f) {
+                value = 1.0f;
+            }
+            else if (value < 0.0f) {
+                value = 0.0f;
+            }
+
+            std::cout << value << std::endl;
+
+            generator->clearColor = { value, value, value, 1.0f };
+            // generator->refreshPixmap();
+            return true;
         }
     } else if (event->type() == QEvent::MouseButtonPress) {
         QMouseEvent* mousePress = dynamic_cast<QMouseEvent*>(event);
 
         if (mousePress != nullptr) {
             // std::cout << "Pressed the button: " << mousePress->button() << std::endl;
-            generator->refreshPixmap();
+            // generator->refreshPixmap();
+            return true;
         } 
     } else if (event->type() == QEvent::MouseButtonRelease) {
         QMouseEvent* mouseRelease = dynamic_cast<QMouseEvent*>(event);
 
         if (mouseRelease != nullptr) {
             // std::cout << "Released the button: " << mouseRelease->button() << std::endl;
+            return true;
         } 
     } else {
         // std::cout << event->type() << std::endl;
@@ -181,16 +198,24 @@ void V3dGenerator::refreshPixmap() {
         QPointF{},            // pos
         QPointF{},            // globalPos
         QPoint{},             // pixelDelta
-        QPoint{ 10, 10 },       // angleDelta
+        QPoint{ 1, 1 },   // angleDelta
         0,                    // buttons
-        Qt::ControlModifier,  // modifiersF
+        Qt::ControlModifier,  // modifiers
         Qt::NoScrollPhase,    // phase
         false                 // inverted
     );
 
-    // std::cout << "About to call" << std::endl;
-    m_Helper->callProtected(m_PageView, wheelEvent);
-    // std::cout << "Finished calling" << std::endl;
+    QMouseEvent* mouseEvent = new QMouseEvent(
+        QEvent::MouseButtonRelease,         // type
+        QPointF{ },                     // localPos
+        QPointF{ },                     // globalPos
+        Qt::MiddleButton,               // button
+        0,                              // buttons
+        Qt::NoModifier                  // modifiers
+    );
+
+    m_Helper->callWheelEvent(m_PageView, wheelEvent);
+    m_Helper->callMouseReleaseEvent(m_PageView, mouseEvent);
 }
 
 bool V3dGenerator::loadDocument(const QString &fileName, QVector<Okular::Page *> &pagesVector) {
@@ -231,7 +256,7 @@ void V3dGenerator::generatePixmap(Okular::PixmapRequest* request) {
 
 	glm::mat4 mvp = projection * model * view;
 
-    unsigned char* imageData = m_HeadlessRenderer->render(width, height, &imageSubresourceLayout, vertices, indices, mvp);
+    unsigned char* imageData = m_HeadlessRenderer->render(width, height, &imageSubresourceLayout, vertices, indices, mvp, clearColor);
 
     auto imgDatatmp = imageData;
 

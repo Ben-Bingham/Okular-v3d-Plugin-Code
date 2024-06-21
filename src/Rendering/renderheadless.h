@@ -83,11 +83,11 @@ private:
 	void createAttachments(VkFormat colorFormat, VkFormat depthFormat, int targetWidth, int targetHeight);
 	void createRenderPipeline(VkFormat colorFormat, VkFormat depthFormat, int targetWidth, int targetHeight);
 	void createGraphicsPipeline();
-	void recordCommandBuffer(int targetWidth, int targetHeight, size_t indexCount, const glm::mat4& mvp);
+	void recordCommandBuffer(int targetWidth, int targetHeight, size_t indexCount, const glm::mat4& mvp, const glm::vec4& clearColor);
 	unsigned char* copyToHost(int targetWidth, int targetHeight, VkSubresourceLayout* imageSubresourceLayout);
 
 public:
-	unsigned char* render(int targetWidth, int targetHeight, VkSubresourceLayout* imageSubresourceLayout, const std::vector<float>& vertices, const std::vector<unsigned int>& indices, const glm::mat4& mvp);
+	unsigned char* render(int targetWidth, int targetHeight, VkSubresourceLayout* imageSubresourceLayout, const std::vector<float>& vertices, const std::vector<unsigned int>& indices, const glm::mat4& mvp, const glm::vec4& clearColor);
 
 	uint32_t getMemoryTypeIndex(uint32_t typeBits, VkMemoryPropertyFlags properties);
 
