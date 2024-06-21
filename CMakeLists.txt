@@ -10,12 +10,13 @@ set(okularGenerator_v3d_SRCS src/v3d_generator.cpp src/Rendering/renderheadless.
 
 okular_add_generator(okularGenerator_v3d ${okularGenerator_v3d_SRCS})
 
-target_link_libraries(okularGenerator_v3d okularcore Qt5::Core KF5::I18n GLEW glfw GL vulkan dl pthread X11 Xxf86vm Xrandr Xi tirpc KF5::Parts)
+target_link_libraries(okularGenerator_v3d okularcore Qt5::Core KF5::I18n GLEW glfw GL vulkan dl pthread X11 Xxf86vm Xrandr Xi tirpc KF5::Parts Okular5Core)
 
 #list( APPEND CMAKE_INSTALL_RPATH "/usr/lib/dependencies" )
 set_target_properties(okularGenerator_v3d
         PROPERTIES
-        LINK_FLAGS "-Wl,-rpath,/usr/lib:/usr/lib/dependencies"
+        LINK_FLAGS "-L/home/benjaminb/kde/build/okular/bin/ -L/home/benjaminb/"
+        #-Wl,-rpath,/usr/lib:/usr/lib/dependencies
 )
 
 ########### install files ###############

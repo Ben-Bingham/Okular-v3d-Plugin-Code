@@ -15,11 +15,22 @@
 #include "renderheadless.h"
 #include "V3dFile/V3dFile.h"
 
-// #include "../../../core/generator.h"
+#include <thread>
+#include "part/pageview.h"
+
 #include <core/generator.h>
-// namespace Okular {
-//     struct Rotation;
-// }
+
+class Helper : public QAbstractScrollArea {
+public:
+    void callProtected(QAbstractScrollArea* obj, QWheelEvent* event) {
+        void (QAbstractScrollArea::*funcPtr)(QWheelEvent*) = &Helper::wheelEvent;
+
+        (obj->*funcPtr)(event);
+    }
+};
+
+class EventFilter;
+
 class V3dGenerator : public Okular::Generator {
     Q_OBJECT
     Q_INTERFACES(Okular::Generator)
@@ -32,9 +43,7 @@ public:
     bool loadDocument(const QString &fileName, QVector<Okular::Page*> &pages) override;
     bool doCloseDocument() override;
 
-    void rotationChanged(Okular::Rotation orientation, Okular::Rotation oldOrientation) override;
-
-    bool event(QEvent* e) override;
+    void refreshPixmap();
 
 private:
     static int m_V3dGeneratorCount;
@@ -42,4 +51,21 @@ private:
     HeadlessRenderer* m_HeadlessRenderer;
 
     std::unique_ptr<V3dFile> m_File{ nullptr };
+
+    std::unique_ptr<std::thread> m_UpdateThread{ nullptr };
+
+    QAbstractScrollArea* m_PageView{ nullptr };
+
+    std::unique_ptr<Helper> m_Helper{ nullptr };
+
+    std::unique_ptr<EventFilter> m_EventFilter{ nullptr };
+};
+
+class EventFilter : public QObject {
+public:
+    EventFilter(QObject* parent, V3dGenerator* generator);
+
+    bool eventFilter(QObject *object, QEvent *event);
+
+    V3dGenerator* generator;
 };

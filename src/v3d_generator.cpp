@@ -32,7 +32,45 @@
 
 #include <shell/shell.h>
 
+#include "part/pageview.h"
+
+// #include <part/part.h>
+
 OKULAR_EXPORT_PLUGIN(V3dGenerator, "libokularGenerator_v3d.json")
+
+EventFilter::EventFilter(QObject* parent, V3dGenerator* generator) 
+    : QObject(parent), generator(generator) { }
+
+bool EventFilter::eventFilter(QObject *object, QEvent *event) {
+    if (generator == nullptr) {
+        return false;
+    }
+
+    if (event->type() == QEvent::MouseMove) {
+        QMouseEvent* mouseMove = dynamic_cast<QMouseEvent*>(event);
+
+        if (mouseMove != nullptr) {
+            // std::cout << "X: " << mouseMove->globalPos().x() << ", Y: " << mouseMove->globalPos().y() << std::endl;
+        }
+    } else if (event->type() == QEvent::MouseButtonPress) {
+        QMouseEvent* mousePress = dynamic_cast<QMouseEvent*>(event);
+
+        if (mousePress != nullptr) {
+            // std::cout << "Pressed the button: " << mousePress->button() << std::endl;
+            generator->refreshPixmap();
+        } 
+    } else if (event->type() == QEvent::MouseButtonRelease) {
+        QMouseEvent* mouseRelease = dynamic_cast<QMouseEvent*>(event);
+
+        if (mouseRelease != nullptr) {
+            // std::cout << "Released the button: " << mouseRelease->button() << std::endl;
+        } 
+    } else {
+        // std::cout << event->type() << std::endl;
+    }
+
+    return false;
+}
 
 void error_callback(int error, const char* description) {
     std::cout << "GLFW Error[" << error << "]:" << description << std::endl;
@@ -44,76 +82,91 @@ V3dGenerator::V3dGenerator(QObject *parent, const QVariantList &args) {
 
     if (m_V3dGeneratorCount == 0) {
         m_HeadlessRenderer = new HeadlessRenderer{ "/home/benjaminb/kde/src/okular/generators/Okular-v3d-Plugin-Code/shaders/" };
+
+        int i = 0;
+        for (QWidget* widget : QApplication::allWidgets()) {
+            bool hasScrollArea = false;
+            bool parentIsWidget = false;
+            bool has8Children = false;
+            bool has1QVboxChild = false;
+            bool has5QFrameChild = false;
+
+            QAbstractScrollArea* scrollArea = dynamic_cast<QAbstractScrollArea*>(widget);
+
+            if (scrollArea != nullptr) {
+                hasScrollArea = true;
+            } else {
+                continue;
+            }
+
+            QWidget* parent = dynamic_cast<QWidget*>(widget->parent());
+
+            if (parent != nullptr) {
+                parentIsWidget = true;
+            } else {
+                continue;
+            }
+
+            if (parent->children().size() == 9) {
+                has8Children = true;
+            } else {
+                continue;
+            }
+
+
+            int QBoxLayoutCount = 0;
+            for (auto child : parent->children()) {
+                QBoxLayout* qBox = dynamic_cast<QBoxLayout*>(child);
+
+                if (qBox != nullptr) {
+                    QBoxLayoutCount += 1;
+                }
+            }
+
+            if (QBoxLayoutCount == 1) {
+                has1QVboxChild = true;
+            } else {
+                continue;
+            }
+
+            int QFrameCount = 0;
+            for (auto child : parent->children()) {
+                QFrame* qFrame = dynamic_cast<QFrame*>(child);
+
+                if (qFrame != nullptr) {
+                    QFrameCount += 1;
+                }
+            }
+
+            if (QFrameCount == 6) {
+                has5QFrameChild = true;
+            } else {
+                continue;
+            }
+
+            if (hasScrollArea && parentIsWidget && has8Children && has1QVboxChild && has5QFrameChild) {
+                i++;
+
+                if (m_PageView != nullptr) {
+                    std::cout << "ERROR, multiple pageViews found" << std::endl;
+                }
+                m_PageView = dynamic_cast<QAbstractScrollArea*>(widget);
+            }
+        }
+
+        m_EventFilter = std::make_unique<EventFilter>(m_PageView, this);
+        // m_PageView->setAttribute(Qt::WA_Hover, true);
+        m_PageView->viewport()->installEventFilter(m_EventFilter.get());
     }
 
     m_V3dGeneratorCount++;
-
-    int i = 0;
-    for (QWidget* widget : QApplication::allWidgets()) {
-        if (widget->inherits("QMainWindow")) {
-            // ++i;
-            // if (stackedWidget != nullptr) {
-            //     // ++i;
-            //     // std::cout << "Widget has: " << stackedWidget->count() << " Children" << std::endl;
-            // }
-
-            // This is the shell
-            QMainWindow* mainWindowWidget = dynamic_cast<QMainWindow*>(widget);
-
-            // Shell* shellWidget = dynamic_cast<Shell*>(widget);
-            // Shell* shell = qobject_cast<Shell*>(widget);
-            // if (shell != nullptr) {
-            //     std::cout << "FOUND SHELL WIDGET" << std::endl;
-            // }
-
-            if (mainWindowWidget != nullptr) {
-                std::cout << "FOUND mainWindowWiget" << std::endl;
-                // mainWindowWidget->widget();
-
-                std::cout << "Found : " << mainWindowWidget->children().size() <<  " Children" << std::endl;
-                for (auto obj : mainWindowWidget->children()) {
-                    // if (obj->inherits("")) {
-
-                    // }
-
-                    Part* part = qobject_cast<Part*>(obj);
-
-                    if (part != nullptr) {
-                        i++;
-                    }
-                }
-
-
-
-                
-
-                // QWidget* centralWidget = mainWindowWiget->centralWidget();
-
-                // QStackedWidget* stackedWidget = dynamic_cast<QStackedWidget*>(centralWidget);
-                // if (stackedWidget != nullptr) {
-                //     std::cout << "FOUND CENTRAL WIDGEt" << std::endl;
-                //     // ++i;
-                //     std::cout << "Widget has: " << stackedWidget->count() << " Children" << std::endl;
-                //     // stackedWidget->addWidget(this);
-                }
-            // }
-
-
-        }
-
-        // QStackedWidget* stackedWidget = dynamic_cast<QStackedWidget*>(widget);
-        // if (stackedWidget != nullptr) {
-        //     ++i;
-        //     std::cout << "Widget has: " << stackedWidget->count() << " Children" << std::endl;
-        // }
-    }
-
-    std::cout << "FOUND : " << i << "WIDGETS" << std::endl;
 }
 
 V3dGenerator::~V3dGenerator() {
     if (m_V3dGeneratorCount == 1) {
         delete m_HeadlessRenderer;
+
+        m_EventFilter->generator = nullptr;
     }
 
     m_V3dGeneratorCount--;
@@ -123,19 +176,21 @@ bool V3dGenerator::doCloseDocument() {
     return true;
 }
 
-void V3dGenerator::rotationChanged(Okular::Rotation orientation, Okular::Rotation oldOrientation) {
-    std::cout << "Rotation Changed ffffffffffffffffffffffffffffffffffffffffffffffffffffff" << std::endl;
-}
+void V3dGenerator::refreshPixmap() {
+    QWheelEvent* wheelEvent = new QWheelEvent(
+        QPointF{},            // pos
+        QPointF{},            // globalPos
+        QPoint{},             // pixelDelta
+        QPoint{ 10, 10 },       // angleDelta
+        0,                    // buttons
+        Qt::ControlModifier,  // modifiersF
+        Qt::NoScrollPhase,    // phase
+        false                 // inverted
+    );
 
-
-bool V3dGenerator::event(QEvent* e) {
-    std::cout << "GOt an eventffffffffffaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaffffffff" << std::endl;
-    if (e->type() == QEvent::MouseButtonPress) {
-        std::cout << "BuToNon PreSe sfjsd;lkdfj" << std::endl;
-        return true;
-    }
-
-    return Okular::Generator::event(e);
+    // std::cout << "About to call" << std::endl;
+    m_Helper->callProtected(m_PageView, wheelEvent);
+    // std::cout << "Finished calling" << std::endl;
 }
 
 bool V3dGenerator::loadDocument(const QString &fileName, QVector<Okular::Page *> &pagesVector) {
@@ -209,29 +264,9 @@ void V3dGenerator::generatePixmap(Okular::PixmapRequest* request) {
     QPixmap* pixmap = new QPixmap(QPixmap::fromImage(image));
     request->page()->setPixmap(request->observer(), pixmap);
 
-    // for (int i = 0; i < 5; ++i) {
     signalPixmapRequestDone(request);
 
-    // using namespace std::this_thread; // sleep_for, sleep_until
-    // using namespace std::chrono; // nanoseconds, system_clock, seconds
-
-    // sleep_for(5s);
-    // std::cout << "Done sleeping" << std::endl;
-
-    // std::thread t1{[](){
-    //     std::cout << "On a new thread" << std::endl;
-    // }};
-
-    // t1.join();
-
-
-                // signalPixmapRequestDone(request);
-    // }
-    
-    // if (!ran) {
-    //     generatePixmap(request);
-    //     ran = true;
-    // }
+    // refreshPixmap();
 }
 
 int V3dGenerator::m_V3dGeneratorCount{ 0 };
