@@ -11,42 +11,9 @@
 #include "renderheadless.h"
 
 HeadlessRenderer::HeadlessRenderer(std::string shaderPath)
-	: shaderPath(shaderPath) {}
+	: shaderPath(shaderPath) { }
 
-HeadlessRenderer::~HeadlessRenderer() {
-	vkDestroyBuffer(device, vertexBuffer, nullptr);
-	vkFreeMemory(device, vertexMemory, nullptr);
-	vkDestroyBuffer(device, indexBuffer, nullptr);
-	vkFreeMemory(device, indexMemory, nullptr);
-	vkDestroyImageView(device, colorAttachment.view, nullptr);
-	vkDestroyImage(device, colorAttachment.image, nullptr);
-	vkFreeMemory(device, colorAttachment.memory, nullptr);
-	vkDestroyImageView(device, depthAttachment.view, nullptr);
-	vkDestroyImage(device, depthAttachment.image, nullptr);
-	vkFreeMemory(device, depthAttachment.memory, nullptr);
-	vkDestroyRenderPass(device, renderPass, nullptr);
-	vkDestroyFramebuffer(device, framebuffer, nullptr);
-	vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
-	vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
-	vkDestroyPipeline(device, pipeline, nullptr);
-	vkDestroyPipelineCache(device, pipelineCache, nullptr);
-	vkDestroyCommandPool(device, commandPool, nullptr);
-
-	for (auto shadermodule : shaderModules) {
-		vkDestroyShaderModule(device, shadermodule, nullptr);
-	}
-	vkDestroyDevice(device, nullptr);
-
-#if VULKAN_DEBUG
-	if (debugReportCallback) {
-		PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallback = reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(vkGetInstanceProcAddr(instance, "vkDestroyDebugReportCallbackEXT"));
-		assert(vkDestroyDebugReportCallback);
-		vkDestroyDebugReportCallback(instance, debugReportCallback, nullptr);
-	}
-#endif
-
-	vkDestroyInstance(instance, nullptr);
-}
+HeadlessRenderer::~HeadlessRenderer() { }
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugMessageCallback(
 	VkDebugReportFlagsEXT flags,
@@ -220,6 +187,7 @@ void HeadlessRenderer::createLogicalDevice(VkDeviceQueueCreateInfo* queueCreateI
 	deviceCreateInfo.enabledExtensionCount = (uint32_t)deviceExtensions.size();
 	deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
 	VK_CHECK_RESULT(vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device));
+	// std::cout << "Device creation result: " << vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device) << std::endl;
 }
 
 void HeadlessRenderer::copyVertexDataToGPU(const std::vector<float>& vertices) {
@@ -693,11 +661,11 @@ unsigned char* HeadlessRenderer::copyToHost(int targetWidth, int targetHeight, V
 
 	// Map image memory so we can start copying from it
 	vkMapMemory(device, dstImageMemory, 0, VK_WHOLE_SIZE, 0, (void**)&imagedata);
-		imagedata += subResourceLayout.offset;
-	
-		returnData = new unsigned char[imageSubresourceLayout->size];
+	imagedata += subResourceLayout.offset;
 
-		std::memcpy(returnData, imagedata, imageSubresourceLayout->size);
+	returnData = new unsigned char[imageSubresourceLayout->size];
+
+	std::memcpy(returnData, imagedata, imageSubresourceLayout->size);
 
 	// Clean up resources
 	vkUnmapMemory(device, dstImageMemory);
@@ -705,6 +673,41 @@ unsigned char* HeadlessRenderer::copyToHost(int targetWidth, int targetHeight, V
 	vkDestroyImage(device, dstImage, nullptr);
 
 	return returnData;
+}
+
+void HeadlessRenderer::cleanup() {
+	vkDestroyBuffer(device, vertexBuffer, nullptr);
+	vkFreeMemory(device, vertexMemory, nullptr);
+	vkDestroyBuffer(device, indexBuffer, nullptr);
+	vkFreeMemory(device, indexMemory, nullptr);
+	vkDestroyImageView(device, colorAttachment.view, nullptr);
+	vkDestroyImage(device, colorAttachment.image, nullptr);
+	vkFreeMemory(device, colorAttachment.memory, nullptr);
+	vkDestroyImageView(device, depthAttachment.view, nullptr);
+	vkDestroyImage(device, depthAttachment.image, nullptr);
+	vkFreeMemory(device, depthAttachment.memory, nullptr);
+	vkDestroyRenderPass(device, renderPass, nullptr);
+	vkDestroyFramebuffer(device, framebuffer, nullptr);
+	vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+	vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
+	vkDestroyPipeline(device, pipeline, nullptr);
+	vkDestroyPipelineCache(device, pipelineCache, nullptr);
+	vkDestroyCommandPool(device, commandPool, nullptr);
+
+	for (auto shadermodule : shaderModules) {
+		vkDestroyShaderModule(device, shadermodule, nullptr);
+	}
+	vkDestroyDevice(device, nullptr);
+
+#if VULKAN_DEBUG
+	if (debugReportCallback) {
+		PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallback = reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(vkGetInstanceProcAddr(instance, "vkDestroyDebugReportCallbackEXT"));
+		assert(vkDestroyDebugReportCallback);
+		vkDestroyDebugReportCallback(instance, debugReportCallback, nullptr);
+	}
+#endif
+
+	vkDestroyInstance(instance, nullptr);
 }
 
 unsigned char* HeadlessRenderer::render(int targetWidth, int targetHeight, VkSubresourceLayout* imageSubresourceLayout, const std::vector<float>& vertices, const std::vector<unsigned int>& indices, const glm::mat4& mvp, const glm::vec4& clearColor) {	
@@ -740,6 +743,8 @@ unsigned char* HeadlessRenderer::render(int targetWidth, int targetHeight, VkSub
 	unsigned char* returnData = copyToHost(targetWidth, targetHeight, imageSubresourceLayout);
 
 	vkQueueWaitIdle(queue);
+
+	cleanup();
 
 	return returnData;
 }

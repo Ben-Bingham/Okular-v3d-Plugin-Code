@@ -70,7 +70,7 @@ namespace vks
 				STR(ERROR_INCOMPATIBLE_SHADER_BINARY_EXT);
 #undef STR
 			default:
-				return "UNKNOWN_ERROR";
+				return "UNKNOWN_ERROR: " + std::to_string(errorCode);
 			}
 		}
 

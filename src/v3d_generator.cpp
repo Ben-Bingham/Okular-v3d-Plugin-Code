@@ -64,7 +64,7 @@ bool EventFilter::eventFilter(QObject *object, QEvent *event) {
             std::cout << value << std::endl;
 
             generator->clearColor = { value, value, value, 1.0f };
-            // generator->refreshPixmap();
+            generator->refreshPixmap();
             return true;
         }
     } else if (event->type() == QEvent::MouseButtonPress) {
@@ -130,7 +130,6 @@ V3dGenerator::V3dGenerator(QObject *parent, const QVariantList &args) {
                 continue;
             }
 
-
             int QBoxLayoutCount = 0;
             for (auto child : parent->children()) {
                 QBoxLayout* qBox = dynamic_cast<QBoxLayout*>(child);
@@ -172,7 +171,6 @@ V3dGenerator::V3dGenerator(QObject *parent, const QVariantList &args) {
         }
 
         m_EventFilter = std::make_unique<EventFilter>(m_PageView, this);
-        // m_PageView->setAttribute(Qt::WA_Hover, true);
         m_PageView->viewport()->installEventFilter(m_EventFilter.get());
     }
 
@@ -258,7 +256,7 @@ void V3dGenerator::generatePixmap(Okular::PixmapRequest* request) {
 
     unsigned char* imageData = m_HeadlessRenderer->render(width, height, &imageSubresourceLayout, vertices, indices, mvp, clearColor);
 
-    auto imgDatatmp = imageData;
+    unsigned char* imgDatatmp = imageData;
 
     size_t finalImageSize = width * height * 4;
 
@@ -291,7 +289,7 @@ void V3dGenerator::generatePixmap(Okular::PixmapRequest* request) {
 
     signalPixmapRequestDone(request);
 
-    // refreshPixmap();
+    delete imageData;
 }
 
 int V3dGenerator::m_V3dGeneratorCount{ 0 };

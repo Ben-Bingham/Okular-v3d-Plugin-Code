@@ -86,6 +86,8 @@ private:
 	void recordCommandBuffer(int targetWidth, int targetHeight, size_t indexCount, const glm::mat4& mvp, const glm::vec4& clearColor);
 	unsigned char* copyToHost(int targetWidth, int targetHeight, VkSubresourceLayout* imageSubresourceLayout);
 
+	void cleanup();
+
 public:
 	unsigned char* render(int targetWidth, int targetHeight, VkSubresourceLayout* imageSubresourceLayout, const std::vector<float>& vertices, const std::vector<unsigned int>& indices, const glm::mat4& mvp, const glm::vec4& clearColor);
 
