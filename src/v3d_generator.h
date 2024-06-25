@@ -20,6 +20,8 @@
 
 #include <core/generator.h>
 
+#include <chrono>
+
 class Helper : public QAbstractScrollArea {
 public:
     void callWheelEvent(QAbstractScrollArea* obj, QWheelEvent* event) {
@@ -50,7 +52,12 @@ public:
     bool doCloseDocument() override;
 
     void refreshPixmap();
-    glm::vec4 clearColor{ 1.0f, 0.0f, 0.0f, 1.0f };
+
+    std::chrono::duration<double> timeBetweenRefreshes{ 1.0 / 30.0 }; // In Seconds
+
+    std::chrono::time_point<std::chrono::system_clock> startTime;
+
+    bool mouseDown{ false };
 
 private:
     static int m_V3dGeneratorCount;
@@ -66,6 +73,8 @@ private:
     std::unique_ptr<Helper> m_Helper{ nullptr };
 
     std::unique_ptr<EventFilter> m_EventFilter{ nullptr };
+
+    bool m_ZoomIn{ true };
 };
 
 class EventFilter : public QObject {
