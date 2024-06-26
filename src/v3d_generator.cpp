@@ -41,14 +41,41 @@ OKULAR_EXPORT_PLUGIN(V3dGenerator, "libokularGenerator_v3d.json")
 int halfCanvasWidth = 0;
 int halfCanvasHeight = 0;
 
-bool firstMove = true;
+// int Width = 0;
+// int Height = 0;
 
-void handleMouseMovement(int mouseXPosition, int mouseYPosition);
+bool firstMove = true;
 
 EventFilter::EventFilter(QObject* parent, V3dGenerator* generator) 
     : QObject(parent), generator(generator) { }
 
+enum class MouseMode {
+    ROTATE,
+    ZOOM,
+    PAN,
+    NONE
+};
+MouseMode mouseMode;
+
+float Zoom = 1.0f;
+float lastZoom = Zoom;
+
 bool EventFilter::eventFilter(QObject *object, QEvent *event) {
+    // if (!generator->haveTakenInitialPause) {
+    //     auto elapsedTime = std::chrono::system_clock::now() - generator->startTime;
+
+    //     auto elapsedTimeSeconds = std::chrono::duration_cast<std::chrono::duration<double>>(elapsedTime);
+
+    //     // std::cout << elapsedTimeSeconds.count() << std::endl;
+
+    //     if (elapsedTimeSeconds >= generator->initialPause) {
+    //         generator->haveTakenInitialPause = true;
+    //     } else {
+    //         return false;
+    //     }
+    // }
+    // std::cout << "Event" << std::endl;
+
     if (generator == nullptr) {
         return false;
     }
@@ -58,7 +85,7 @@ bool EventFilter::eventFilter(QObject *object, QEvent *event) {
 
         if (mouseMove != nullptr) {
             if (generator->mouseDown) {
-                handleMouseMovement(mouseMove->globalPos().x(), mouseMove->globalPos().y());
+                generator->handleMouseMovement(mouseMove->globalPos().x(), mouseMove->globalPos().y());
             }
 
             auto elapsedTime = std::chrono::system_clock::now() - generator->startTime;
@@ -76,6 +103,16 @@ bool EventFilter::eventFilter(QObject *object, QEvent *event) {
         }
     } else if (event->type() == QEvent::MouseButtonPress) {
         QMouseEvent* mousePress = dynamic_cast<QMouseEvent*>(event);
+
+        if ((mousePress->modifiers() & Qt::ControlModifier && mousePress->modifiers() & Qt::ShiftModifier) || (mousePress->modifiers() & Qt::AltModifier && mousePress->modifiers() & Qt::ShiftModifier)) {
+            mouseMode = MouseMode::NONE;
+        } else if (mousePress->modifiers() & Qt::ShiftModifier) {
+            mouseMode = MouseMode::ZOOM;
+        } else if (mousePress->modifiers() & Qt::ControlModifier || mousePress->modifiers() & Qt::AltModifier) {
+            mouseMode = MouseMode::PAN;
+        } else {
+            mouseMode = MouseMode::ROTATE;
+        }
 
         if (mousePress != nullptr) {
             if (generator->mouseDown == false) {
@@ -97,7 +134,39 @@ bool EventFilter::eventFilter(QObject *object, QEvent *event) {
             generator->mouseDown = false;
             return true;
         } 
-    }
+    } 
+    
+    // else if (event->type() == QEvent::Wheel) {
+    //     QWheelEvent* wheelEvent = dynamic_cast<QWheelEvent*>(event);
+
+
+
+    //     // if (lastZoom != Zoom) {
+    //     //     auto elapsedTime = std::chrono::system_clock::now() - generator->startTime;
+
+    //     //     auto elapsedTimeSeconds = std::chrono::duration_cast<std::chrono::duration<double>>(elapsedTime);
+
+    //     //     if (elapsedTimeSeconds > generator->timeBetweenRefreshes) {
+    //     //         generator->refreshPixmap();
+    //     //         generator->startTime = std::chrono::system_clock::now();
+    //     //     }
+
+    //     //     lastZoom = Zoom;
+    //     // }
+        
+    //     if ((wheelEvent->angleDelta().x() == 1 && wheelEvent->angleDelta().y() == 1) ||
+    //         (wheelEvent->angleDelta().x() == -1 && wheelEvent->angleDelta().y() == -1)) {
+    //         return false;
+    //     } else {
+    //         if (wheelEvent->angleDelta().y() > 0) {
+    //             Zoom *= generator->m_File->headerInfo.zoomFactor;
+    //         } else {
+    //             Zoom /= generator->m_File->headerInfo.zoomFactor;
+    //         }
+
+    //         // return true;
+    //     }
+    // }
 
     return false;
 }
@@ -134,7 +203,7 @@ glm::mat4 viewMat{ 1.0f };
 
 float ArcballFactor = 1.0f;
 
-void handleMouseMovement(int mouseXPosition, int mouseYPosition) {
+void V3dGenerator::handleMouseMovement(int mouseXPosition, int mouseYPosition) {
     if (firstMove) {
         lastMouseX = mouseXPosition;
         lastMouseY = mouseYPosition;
@@ -147,17 +216,51 @@ void handleMouseMovement(int mouseXPosition, int mouseYPosition) {
     float rawX  = (float)(mouseXPosition - halfCanvasWidth)  / (float)halfCanvasWidth;
     float rawY  = (float)(mouseYPosition - halfCanvasHeight) / (float)halfCanvasHeight;
 
-    int factor = 1;
-    float Zoom = 1.0f;
+    switch(mouseMode) {
+        case MouseMode::NONE: {
+            break;
+        }
 
-    if (!(lastX == rawX && lastY == rawY)) {
-        Arcball arcball{(float)lastX, (float)-lastY, (float)rawX, (float)-rawY};
-        float angle = arcball.angle;
-        glm::vec3 axis = arcball.axis;
-        float angleRadians = 2.0f * factor * ArcballFactor * angle / Zoom;
-        glm::mat4 Temp = glm::rotate(glm::mat4(1.0f), angleRadians, axis);
-        rotMat = Temp * rotMat;
-    } 
+        case MouseMode::ROTATE: {
+            int factor = 1;
+
+            if (!(lastX == rawX && lastY == rawY)) {
+                Arcball arcball{(float)lastX, (float)-lastY, (float)rawX, (float)-rawY};
+                float angle = arcball.angle;
+                glm::vec3 axis = arcball.axis;
+
+                // rotMat = glm::rotate<double>(glm::dvec3(axis.x, axis.y, axis.z), (double)(2 * arcball.angle / Zoom * ArcballFactor)) * rotMat;
+                // float angleRadians = 2.0f * factor * ArcballFactor * angle / Zoom;
+                float angleRadians = 2.0f * angle / Zoom * ArcballFactor;
+                glm::mat4 Temp = glm::rotate(glm::mat4(1.0f), angleRadians, axis);
+                rotMat = Temp * rotMat;
+            } 
+            break;
+        }
+
+        case MouseMode::PAN: {
+            std::cout << "Panning" << std::endl;
+            break;
+        }
+
+        case MouseMode::ZOOM: {
+            float diff = lastY - rawY;
+            float stepPower = m_File->headerInfo.zoomStep * halfCanvasHeight * diff;
+            const float limit = std::log(0.1*std::numeric_limits<float>::max()) / std::log(m_File->headerInfo.zoomFactor);
+
+            if (std::abs(stepPower) < limit) {
+                Zoom *= std::pow(m_File->headerInfo.zoomFactor, stepPower);
+                float maxZoom = std::sqrt(std::numeric_limits<float>::max());
+                float minZoom = 1 / maxZoom;
+                if (Zoom <= minZoom) {
+                    Zoom = minZoom;
+                } else if (Zoom >= maxZoom) {
+                    Zoom = maxZoom;
+                }
+            }
+            break;
+        }
+    }
 
     lastMouseX = mouseXPosition;
     lastMouseY = mouseYPosition;
@@ -172,6 +275,19 @@ V3dGenerator::V3dGenerator(QObject *parent, const QVariantList &args) {
     Q_UNUSED(args);
 
     if (m_V3dGeneratorCount == 0) {
+        viewMat = glm::mat4{ 1.0f };
+        rotMat = glm::mat4{ 1.0f };
+
+        halfCanvasWidth = 0;
+        halfCanvasHeight = 0;
+
+        // Width = 0;
+        // Height = 0;
+
+        firstMove = true;
+
+        ArcballFactor = 1.0f;
+
         m_HeadlessRenderer = new HeadlessRenderer{ "/home/benjaminb/kde/src/okular/generators/Okular-v3d-Plugin-Code/shaders/" };
 
         int i = 0;
@@ -249,6 +365,9 @@ V3dGenerator::V3dGenerator(QObject *parent, const QVariantList &args) {
 
         halfCanvasWidth = m_PageView->width() / 2;
         halfCanvasHeight = m_PageView->height() / 2;
+
+        // Width = m_PageView->width();
+        // Height = m_PageView->height();
 
         lastMouseX = halfCanvasWidth;
         lastMouseY = halfCanvasHeight;
@@ -343,6 +462,35 @@ void V3dGenerator::generatePixmap(Okular::PixmapRequest* request) {
     viewMat = rotMat * cjmatInv;
     viewMat = Temp * viewMat;
 
+    float Xfactor = 1.0f;
+    float Yfactor = 1.0f;
+
+    float X = 0.0f;
+    float Y = 0.0f;
+
+    float Width = m_PageView->width();
+    float Height = m_PageView->height();
+
+    float Aspect = (float)Width / (float)Height;
+    float xshift = (X / (float)Width + m_File->headerInfo.viewportShift.x * Xfactor) * Zoom;
+    float yshift = (Y / (float)Height + m_File->headerInfo.viewportShift.y * Yfactor) * Zoom;
+    float Zoominv = 1.0f / Zoom;
+
+    float zMin = m_File->headerInfo.minBound.z;
+    float zMax = m_File->headerInfo.maxBound.z;
+
+    float H = -std::tan(0.5f * m_File->headerInfo.angleOfView) * zMax; 
+
+    float r = H * Zoominv;
+    float rAspect = r * Aspect;
+    float X0 = 2.0f * rAspect * xshift;
+    float Y0 = 2.0f * r * yshift;
+    float xMin = -rAspect - X0;
+    float xMax = rAspect - X0;
+    float yMin = -r - Y0;
+    float yMax = r - Y0;
+    // TODO issue with loading in when using this projection function
+    // glm::mat4 projection = glm::frustum(xMin, xMax, yMin, yMax, -zMax, -zMin);
 	glm::mat4 projection = glm::perspective(m_File->headerInfo.angleOfView, (float)width / (float)height, 0.1f, 10000.0f);
 
 	glm::mat4 mvp = projection * model * viewMat;

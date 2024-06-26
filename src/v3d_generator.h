@@ -53,18 +53,23 @@ public:
 
     void refreshPixmap();
 
-    std::chrono::duration<double> timeBetweenRefreshes{ 1.0 / 30.0 }; // In Seconds
+    std::chrono::duration<double> timeBetweenRefreshes{ 1.0 / 10.0 }; // In Seconds
 
+    std::chrono::duration<double> initialPause{ 3.0 }; // In Seconds
+    bool haveTakenInitialPause = false;
     std::chrono::time_point<std::chrono::system_clock> startTime;
 
     bool mouseDown{ false };
+
+    void handleMouseMovement(int mouseXPosition, int mouseYPosition);
+
+    std::unique_ptr<V3dFile> m_File{ nullptr }; // TODO
 
 private:
     static int m_V3dGeneratorCount;
 
     HeadlessRenderer* m_HeadlessRenderer;
 
-    std::unique_ptr<V3dFile> m_File{ nullptr };
 
     std::unique_ptr<std::thread> m_UpdateThread{ nullptr };
 
