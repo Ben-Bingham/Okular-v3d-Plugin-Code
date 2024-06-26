@@ -6,7 +6,7 @@ include_directories("src/Rendering" "src/" "src/V3dFile" "dependencies/" "depend
 add_compile_options(-fexceptions)
 
 ########### next target ###############
-set(okularGenerator_v3d_SRCS src/v3d_generator.cpp src/Rendering/renderheadless.cpp dependencies/VulkanTools/VulkanTools.cpp src/V3dFile/V3dFile.cpp src/V3dFile/V3dObjects.cpp src/V3dFile/V3dObject.cpp src/V3dFile/V3dUtil.cpp)
+set(okularGenerator_v3d_SRCS src/v3d_generator.cpp src/Rendering/renderheadless.cpp dependencies/VulkanTools/VulkanTools.cpp src/V3dFile/V3dFile.cpp src/V3dFile/V3dObjects.cpp src/V3dFile/V3dObject.cpp src/V3dFile/V3dUtil.cpp src/Utility/ProtectedFunctionCaller.cpp)
 
 okular_add_generator(okularGenerator_v3d ${okularGenerator_v3d_SRCS})
 

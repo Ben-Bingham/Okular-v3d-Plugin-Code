@@ -36,6 +36,8 @@
 
 #include <cmath>
 
+#include "Utility/ProtectedFunctionCaller.h"
+
 OKULAR_EXPORT_PLUGIN(V3dGenerator, "libokularGenerator_v3d.json")
 
 int halfCanvasWidth = 0;
@@ -228,9 +230,6 @@ void V3dGenerator::handleMouseMovement(int mouseXPosition, int mouseYPosition) {
                 Arcball arcball{(float)lastX, (float)-lastY, (float)rawX, (float)-rawY};
                 float angle = arcball.angle;
                 glm::vec3 axis = arcball.axis;
-
-                // rotMat = glm::rotate<double>(glm::dvec3(axis.x, axis.y, axis.z), (double)(2 * arcball.angle / Zoom * ArcballFactor)) * rotMat;
-                // float angleRadians = 2.0f * factor * ArcballFactor * angle / Zoom;
                 float angleRadians = 2.0f * angle / Zoom * ArcballFactor;
                 glm::mat4 Temp = glm::rotate(glm::mat4(1.0f), angleRadians, axis);
                 rotMat = Temp * rotMat;
@@ -418,8 +417,8 @@ void V3dGenerator::refreshPixmap() {
         Qt::NoModifier                  // modifiers
     );
 
-    m_Helper->callWheelEvent(m_PageView, wheelEvent);
-    m_Helper->callMouseReleaseEvent(m_PageView, mouseEvent);
+    ProtectedFunctionCaller::callWheelEvent(m_PageView, wheelEvent);
+    ProtectedFunctionCaller::callMouseReleaseEvent(m_PageView, mouseEvent);
 }
 
 bool V3dGenerator::loadDocument(const QString &fileName, QVector<Okular::Page *> &pagesVector) {

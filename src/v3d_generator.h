@@ -22,21 +22,6 @@
 
 #include <chrono>
 
-class Helper : public QAbstractScrollArea {
-public:
-    void callWheelEvent(QAbstractScrollArea* obj, QWheelEvent* event) {
-        void (QAbstractScrollArea::*funcPtr)(QWheelEvent*) = &Helper::wheelEvent;
-
-        (obj->*funcPtr)(event);
-    }
-
-    void callMouseReleaseEvent(QAbstractScrollArea* obj, QMouseEvent* event) {
-        void (QAbstractScrollArea::*funcPtr)(QMouseEvent*) = &Helper::mouseReleaseEvent;
-
-        (obj->*funcPtr)(event);
-    }
-};
-
 class EventFilter;
 
 class V3dGenerator : public Okular::Generator {
@@ -53,7 +38,7 @@ public:
 
     void refreshPixmap();
 
-    std::chrono::duration<double> timeBetweenRefreshes{ 1.0 / 10.0 }; // In Seconds
+    std::chrono::duration<double> timeBetweenRefreshes{ 1.0 / 100.0 }; // In Seconds
 
     std::chrono::duration<double> initialPause{ 3.0 }; // In Seconds
     bool haveTakenInitialPause = false;
@@ -75,9 +60,6 @@ private:
 
     QAbstractScrollArea* m_PageView{ nullptr };
 
-    std::unique_ptr<Helper> m_Helper{ nullptr };
-
-    // std::unique_ptr<EventFilter> m_EventFilter{ nullptr };
     EventFilter* m_EventFilter{ nullptr };
 
     bool m_ZoomIn{ true };
