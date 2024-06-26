@@ -360,8 +360,8 @@ V3dGenerator::V3dGenerator(QObject *parent, const QVariantList &args) {
             }
         }
 
-        m_EventFilter = std::make_unique<EventFilter>(m_PageView, this);
-        m_PageView->viewport()->installEventFilter(m_EventFilter.get());
+        m_EventFilter = new EventFilter(m_PageView, this);
+        m_PageView->viewport()->installEventFilter(m_EventFilter);
 
         halfCanvasWidth = m_PageView->width() / 2;
         halfCanvasHeight = m_PageView->height() / 2;
@@ -379,8 +379,6 @@ V3dGenerator::V3dGenerator(QObject *parent, const QVariantList &args) {
 V3dGenerator::~V3dGenerator() {
     if (m_V3dGeneratorCount == 1) {
         delete m_HeadlessRenderer;
-
-        m_EventFilter->generator = nullptr;
     }
 
     m_V3dGeneratorCount--;

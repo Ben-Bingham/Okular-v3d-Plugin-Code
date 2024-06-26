@@ -77,7 +77,8 @@ private:
 
     std::unique_ptr<Helper> m_Helper{ nullptr };
 
-    std::unique_ptr<EventFilter> m_EventFilter{ nullptr };
+    // std::unique_ptr<EventFilter> m_EventFilter{ nullptr };
+    EventFilter* m_EventFilter{ nullptr };
 
     bool m_ZoomIn{ true };
 };
@@ -85,7 +86,7 @@ private:
 class EventFilter : public QObject {
 public:
     EventFilter(QObject* parent, V3dGenerator* generator);
-
+    ~EventFilter() override = default;
     bool eventFilter(QObject *object, QEvent *event);
 
     V3dGenerator* generator;
