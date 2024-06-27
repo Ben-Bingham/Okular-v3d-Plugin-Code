@@ -36,32 +36,52 @@ public:
     bool loadDocument(const QString &fileName, QVector<Okular::Page*> &pages) override;
     bool doCloseDocument() override;
 
-    void refreshPixmap();
+    bool mouseMoveEvent(QMouseEvent* event);
+    bool mouseButtonPressEvent(QMouseEvent* event);
+    bool mouseButtonReleaseEvent(QMouseEvent* event);
 
-    std::chrono::duration<double> timeBetweenRefreshes{ 1.0 / 100.0 }; // In Seconds
+private:
+    bool m_MouseDown{ false };
 
-    std::chrono::duration<double> initialPause{ 3.0 }; // In Seconds
-    bool haveTakenInitialPause = false;
-    std::chrono::time_point<std::chrono::system_clock> startTime;
+    enum class DragMode {
+        SHIFT,
+        ZOOM,
+        PAN,
+        ROTATE
+    };
+    DragMode m_DragMode{ DragMode::ROTATE };
 
-    bool mouseDown{ false };
+    glm::ivec2 m_MousePosition;
+    glm::ivec2 m_LastMousePosition;
+
+    glm::vec2 m_PageViewDimensions;
+
+    glm::mat4 m_RotationMatrix{ 1.0f };
+    glm::mat4 m_ViewMatrix{ 1.0f };
+
+    void dragModeShift  (const glm::vec2& normalizedMousePosition, const glm::vec2& lastNormalizedMousePosition);
+    void dragModeZoom   (const glm::vec2& normalizedMousePosition, const glm::vec2& lastNormalizedMousePosition);
+    void dragModePan    (const glm::vec2& normalizedMousePosition, const glm::vec2& lastNormalizedMousePosition);
+    void dragModeRotate (const glm::vec2& normalizedMousePosition, const glm::vec2& lastNormalizedMousePosition);
 
     void handleMouseMovement(int mouseXPosition, int mouseYPosition);
 
-    std::unique_ptr<V3dFile> m_File{ nullptr }; // TODO
+    void requestPixmapRefresh();
 
-private:
+    void refreshPixmap();
+
     QAbstractScrollArea* getPageViewWidget();
 
     static int m_V3dGeneratorCount;
 
-    HeadlessRenderer* m_HeadlessRenderer;
+    std::unique_ptr<V3dFile> m_File{ nullptr };
 
-    std::unique_ptr<std::thread> m_UpdateThread{ nullptr };
+    std::chrono::duration<double> m_MinTimeBetweenRefreshes{ 1.0 / 100.0 }; // In Seconds
+    std::chrono::time_point<std::chrono::system_clock> m_LastPixmapRefreshTime;
+
+    HeadlessRenderer* m_HeadlessRenderer;
 
     QAbstractScrollArea* m_PageView{ nullptr };
 
     EventFilter* m_EventFilter{ nullptr };
-
-    bool m_ZoomIn{ true };
 };

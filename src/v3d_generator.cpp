@@ -42,128 +42,12 @@
 
 OKULAR_EXPORT_PLUGIN(V3dGenerator, "libokularGenerator_v3d.json")
 
-int halfCanvasWidth = 0;
-int halfCanvasHeight = 0;
-
-// int Width = 0;
-// int Height = 0;
-
-
-
-
-int lastMouseX = halfCanvasWidth;
-int lastMouseY = halfCanvasHeight;
-
-struct Arcball {
-    float angle;
-    glm::vec3 axis;
-
-    Arcball(float oldMouseX, float oldMouseY, float newMouseX, float newMouseY) {
-        glm::vec3 v0 = norm(oldMouseX, oldMouseY);
-        glm::vec3 v1 = norm(newMouseX, newMouseY);
-        float Dot = glm::dot(v0, v1);
-        angle = Dot > 1.0f ? 0.0f : (Dot < -1.0f ? glm::pi<float>() : std::acos(Dot));
-
-        axis = glm::normalize(glm::cross(v0, v1));
-    }
-
-    glm::vec3 norm(float x, float y) {
-        float norm = std::hypot(x, y);
-        if (norm > 1.0) {
-            float denom = 1.0f/norm;
-            x *= denom;
-            y *= denom;
-        }
-        return glm::vec3{ x, y, std::sqrt(std::max(1.0f - x * x - y * y, 0.0f))};
-    }
-};
-
-glm::mat4 rotMat{ 1.0f };
-glm::mat4 viewMat{ 1.0f };
-
-float ArcballFactor = 1.0f;
-
-void V3dGenerator::handleMouseMovement(int mouseXPosition, int mouseYPosition) {
-    if (Global::firstMove) {
-        lastMouseX = mouseXPosition;
-        lastMouseY = mouseYPosition;
-
-        Global::firstMove = false;
-    }
-
-    float lastX = (float)(lastMouseX -     halfCanvasWidth)  / (float)halfCanvasWidth;
-    float lastY = (float)(lastMouseY -     halfCanvasHeight) / (float)halfCanvasHeight;
-    float rawX  = (float)(mouseXPosition - halfCanvasWidth)  / (float)halfCanvasWidth;
-    float rawY  = (float)(mouseYPosition - halfCanvasHeight) / (float)halfCanvasHeight;
-
-    switch(Global::mouseMode) {
-        case MouseMode::NONE: {
-            break;
-        }
-
-        case MouseMode::ROTATE: {
-            int factor = 1;
-
-            if (!(lastX == rawX && lastY == rawY)) {
-                Arcball arcball{(float)lastX, (float)-lastY, (float)rawX, (float)-rawY};
-                float angle = arcball.angle;
-                glm::vec3 axis = arcball.axis;
-                float angleRadians = 2.0f * angle / Global::Zoom * ArcballFactor;
-                glm::mat4 Temp = glm::rotate(glm::mat4(1.0f), angleRadians, axis);
-                rotMat = Temp * rotMat;
-            } 
-            break;
-        }
-
-        case MouseMode::PAN: {
-            std::cout << "Panning" << std::endl;
-            break;
-        }
-
-        case MouseMode::ZOOM: {
-            float diff = lastY - rawY;
-            float stepPower = m_File->headerInfo.zoomStep * halfCanvasHeight * diff;
-            const float limit = std::log(0.1*std::numeric_limits<float>::max()) / std::log(m_File->headerInfo.zoomFactor);
-
-            if (std::abs(stepPower) < limit) {
-                Global::Zoom *= std::pow(m_File->headerInfo.zoomFactor, stepPower);
-                float maxZoom = std::sqrt(std::numeric_limits<float>::max());
-                float minZoom = 1 / maxZoom;
-                if (Global::Zoom <= minZoom) {
-                    Global::Zoom = minZoom;
-                } else if (Global::Zoom >= maxZoom) {
-                    Global::Zoom = maxZoom;
-                }
-            }
-            break;
-        }
-    }
-
-    lastMouseX = mouseXPosition;
-    lastMouseY = mouseYPosition;
-}
-
-void error_callback(int error, const char* description) {
-    std::cout << "GLFW Error[" << error << "]:" << description << std::endl;
-}
-
 V3dGenerator::V3dGenerator(QObject *parent, const QVariantList &args) {
     Q_UNUSED(parent);
     Q_UNUSED(args);
 
     if (m_V3dGeneratorCount == 0) {
-        viewMat = glm::mat4{ 1.0f };
-        rotMat = glm::mat4{ 1.0f };
-
-        halfCanvasWidth = 0;
-        halfCanvasHeight = 0;
-
-        // Width = 0;
-        // Height = 0;
-
         Global::firstMove = true;
-
-        ArcballFactor = 1.0f;
 
         m_HeadlessRenderer = new HeadlessRenderer{ "/home/benjaminb/kde/src/okular/generators/Okular-v3d-Plugin-Code/shaders/" };
 
@@ -172,14 +56,11 @@ V3dGenerator::V3dGenerator(QObject *parent, const QVariantList &args) {
         m_EventFilter = new EventFilter(m_PageView, this);
         m_PageView->viewport()->installEventFilter(m_EventFilter);
 
-        halfCanvasWidth = m_PageView->width() / 2;
-        halfCanvasHeight = m_PageView->height() / 2;
-
-        // Width = m_PageView->width();
-        // Height = m_PageView->height();
-
-        lastMouseX = halfCanvasWidth;
-        lastMouseY = halfCanvasHeight;
+        // TODO deal with resizing window
+        // TODO deal with these numbers not being entirly acurate, print out the normalized mouse coords to see,
+        //      Everyting needs to be shifted
+        m_PageViewDimensions.x = m_PageView->width();
+        m_PageViewDimensions.y = m_PageView->height();
     }
 
     m_V3dGeneratorCount++;
@@ -191,62 +72,6 @@ V3dGenerator::~V3dGenerator() {
     }
 
     m_V3dGeneratorCount--;
-}
-
-bool V3dGenerator::doCloseDocument() {
-    return true;
-}
-
-void V3dGenerator::refreshPixmap() {
-    int zoom = 0;
-    if (m_ZoomIn) {
-        zoom = 1;
-        m_ZoomIn = false;
-    } else {
-        zoom = -1;
-        m_ZoomIn = true;
-    }
-
-    QWheelEvent* wheelEvent = new QWheelEvent(
-        QPointF{},            // pos
-        QPointF{},            // globalPos
-        QPoint{},             // pixelDelta
-        QPoint{ zoom, zoom }, // angleDelta
-        0,                    // buttons
-        Qt::ControlModifier,  // modifiers
-        Qt::NoScrollPhase,    // phase
-        false                 // inverted
-    );
-
-    QMouseEvent* mouseEvent = new QMouseEvent(
-        QEvent::MouseButtonRelease,     // type
-        QPointF{ },                     // localPos
-        QPointF{ },                     // globalPos
-        Qt::MiddleButton,               // button
-        0,                              // buttons
-        Qt::NoModifier                  // modifiers
-    );
-
-    ProtectedFunctionCaller::callWheelEvent(m_PageView, wheelEvent);
-    ProtectedFunctionCaller::callMouseReleaseEvent(m_PageView, mouseEvent);
-}
-
-bool V3dGenerator::loadDocument(const QString &fileName, QVector<Okular::Page *> &pagesVector) {
-    m_File = std::make_unique<V3dFile>(fileName.toStdString());
-
-    size_t width = m_File->headerInfo.canvasWidth;
-    size_t height = m_File->headerInfo.canvasHeight;
-
-    while (!(width > 600)) {
-        width *= 2;
-        height *= 2;
-    }
-
-    Okular::Page* page = new Okular::Page(0, width, height, Okular::Rotation0);
-
-    pagesVector.append(page);
-
-    return true;
 }
 
 void V3dGenerator::generatePixmap(Okular::PixmapRequest* request) {
@@ -266,8 +91,8 @@ void V3dGenerator::generatePixmap(Okular::PixmapRequest* request) {
     Temp = glm::translate(Temp, center);
     glm::mat4 cjmatInv = glm::inverse(Temp);
 
-    viewMat = rotMat * cjmatInv;
-    viewMat = Temp * viewMat;
+    m_ViewMatrix = m_RotationMatrix * cjmatInv;
+    m_ViewMatrix = Temp * m_ViewMatrix;
 
     float Xfactor = 1.0f;
     float Yfactor = 1.0f;
@@ -300,7 +125,7 @@ void V3dGenerator::generatePixmap(Okular::PixmapRequest* request) {
     // glm::mat4 projection = glm::frustum(xMin, xMax, yMin, yMax, -zMax, -zMin);
 	glm::mat4 projection = glm::perspective(m_File->headerInfo.angleOfView, (float)width / (float)height, 0.1f, 10000.0f);
 
-	glm::mat4 mvp = projection * model * viewMat;
+	glm::mat4 mvp = projection * model * m_ViewMatrix;
 
     unsigned char* imageData = m_HeadlessRenderer->render(width, height, &imageSubresourceLayout, vertices, indices, mvp);
 
@@ -338,6 +163,283 @@ void V3dGenerator::generatePixmap(Okular::PixmapRequest* request) {
     signalPixmapRequestDone(request);
 
     delete imageData;
+}
+
+bool V3dGenerator::loadDocument(const QString &fileName, QVector<Okular::Page *> &pagesVector) {
+    m_File = std::make_unique<V3dFile>(fileName.toStdString());
+
+    size_t width = m_File->headerInfo.canvasWidth;
+    size_t height = m_File->headerInfo.canvasHeight;
+
+    while (!(width > 600)) {
+        width *= 2;
+        height *= 2;
+    }
+
+    Okular::Page* page = new Okular::Page(0, width, height, Okular::Rotation0);
+
+    pagesVector.append(page);
+
+    return true;
+}
+
+bool V3dGenerator::doCloseDocument() {
+    return true;
+}
+
+// int halfCanvasWidth = 0;
+// int halfCanvasHeight = 0;
+
+// int Width = 0;
+// int Height = 0;
+
+// int lastMouseX = halfCanvasWidth;
+// int lastMouseY = halfCanvasHeight;
+
+struct Arcball {
+    float angle;
+    glm::vec3 axis;
+
+    Arcball(const glm::vec2& lastMousePosition, const glm::vec2& mousePosition) {
+        glm::vec3 v0 = norm(lastMousePosition);
+        glm::vec3 v1 = norm(mousePosition);
+        float Dot = glm::dot(v0, v1);
+        angle = Dot > 1.0f ? 0.0f : (Dot < -1.0f ? glm::pi<float>() : std::acos(Dot));
+
+        axis = glm::normalize(glm::cross(v0, v1));
+    }
+
+    glm::vec3 norm(glm::vec2 v) {
+        float norm = std::hypot(v.x, v.y);
+        if (norm > 1.0) {
+            float denom = 1.0f/norm;
+            v.x *= denom;
+            v.y *= denom;
+        }
+        return glm::vec3{ v.x, v.y, std::sqrt(std::max(1.0f - v.x * v.x - v.y * v.y, 0.0f))};
+    }
+};
+
+float ArcballFactor = 1.0f;
+
+bool V3dGenerator::mouseMoveEvent(QMouseEvent* event) {
+    m_MousePosition.x = event->globalPos().x();
+    m_MousePosition.y = event->globalPos().y();
+
+    if (m_MouseDown == false) {
+        return true;
+    }
+
+    glm::vec2 normalizedMousePosition{ };
+    glm::vec2 lastNormalizedMousePosition{ };
+
+    glm::vec2 halfPageViewDimensions = m_PageViewDimensions / 2.0f;
+
+    normalizedMousePosition.x = (float)(m_MousePosition.x - halfPageViewDimensions.x) / halfPageViewDimensions.x;
+    normalizedMousePosition.y = (float)(m_MousePosition.y - halfPageViewDimensions.y) / halfPageViewDimensions.y;
+
+    lastNormalizedMousePosition.x = (float)(m_LastMousePosition.x - halfPageViewDimensions.x) / halfPageViewDimensions.x;
+    lastNormalizedMousePosition.y = (float)(m_LastMousePosition.y - halfPageViewDimensions.y) / halfPageViewDimensions.y;
+
+    switch (m_DragMode) {
+        case V3dGenerator::DragMode::SHIFT: {
+            dragModeShift(normalizedMousePosition, lastNormalizedMousePosition);
+            break;
+        }
+        case V3dGenerator::DragMode::ZOOM: {
+            dragModeZoom(normalizedMousePosition, lastNormalizedMousePosition);
+            break;
+        }
+        case V3dGenerator::DragMode::PAN: {
+            dragModePan(normalizedMousePosition, lastNormalizedMousePosition);
+            break;
+        }
+        case V3dGenerator::DragMode::ROTATE: {
+            dragModeRotate(normalizedMousePosition, lastNormalizedMousePosition);
+            break;
+        }
+    }
+
+    m_LastMousePosition.x = m_MousePosition.x;
+    m_LastMousePosition.y = m_MousePosition.y;
+
+    requestPixmapRefresh();
+
+    return true;
+}
+
+bool V3dGenerator::mouseButtonPressEvent(QMouseEvent* event) {
+    if (m_MouseDown != false) {
+        return true;
+    }
+
+    m_LastMousePosition.x = m_MousePosition.x;
+    m_LastMousePosition.y = m_MousePosition.y;
+
+    m_MouseDown = true;
+
+    bool controlKey = event->modifiers() & Qt::ControlModifier;
+    bool shiftKey = event->modifiers() & Qt::ShiftModifier;
+    bool altKey = event->modifiers() & Qt::AltModifier;
+
+    if (controlKey && !shiftKey && !altKey) {
+        m_DragMode = V3dGenerator::DragMode::SHIFT;
+    } else if (!controlKey && shiftKey && !altKey) {
+        m_DragMode = V3dGenerator::DragMode::ZOOM;
+    } else if (!controlKey && !shiftKey && altKey) {
+        m_DragMode = V3dGenerator::DragMode::PAN;
+    } else {
+        m_DragMode = V3dGenerator::DragMode::ROTATE;
+    }
+
+    return true;
+}
+
+bool V3dGenerator::mouseButtonReleaseEvent(QMouseEvent* event) {
+    if (m_MouseDown != true) {
+        return true;
+    }
+
+    m_MouseDown = false;
+
+    return true;
+}
+
+void V3dGenerator::dragModeShift(const glm::vec2& normalizedMousePosition, const glm::vec2& lastNormalizedMousePosition) {
+
+}
+
+void V3dGenerator::dragModeZoom(const glm::vec2& normalizedMousePosition, const glm::vec2& lastNormalizedMousePosition) {
+
+}
+
+void V3dGenerator::dragModePan(const glm::vec2& normalizedMousePosition, const glm::vec2& lastNormalizedMousePosition) {
+
+}
+
+void V3dGenerator::dragModeRotate(const glm::vec2& normalizedMousePosition, const glm::vec2& lastNormalizedMousePosition) {
+    int factor = 1;
+
+    if (normalizedMousePosition == lastNormalizedMousePosition) { return; }
+
+    Arcball arcball{ { lastNormalizedMousePosition.x, -lastNormalizedMousePosition.y }, { normalizedMousePosition.x, -normalizedMousePosition.y} };
+    float angle = arcball.angle;
+    glm::vec3 axis = arcball.axis;
+
+    float angleRadians = 2.0f * angle / Global::Zoom * ArcballFactor;
+    glm::mat4 temp = glm::rotate(glm::mat4(1.0f), angleRadians, axis);
+    m_RotationMatrix = temp * m_RotationMatrix;
+}
+
+void V3dGenerator::handleMouseMovement(int mouseXPosition, int mouseYPosition) {
+    // if (Global::firstMove) {
+    //     lastMouseX = mouseXPosition;
+    //     lastMouseY = mouseYPosition;
+
+    //     Global::firstMove = false;
+    // }
+
+    // float lastX = (float)(lastMouseX -     halfCanvasWidth)  / (float)halfCanvasWidth;
+    // float lastY = (float)(lastMouseY -     halfCanvasHeight) / (float)halfCanvasHeight;
+    // float rawX  = (float)(mouseXPosition - halfCanvasWidth)  / (float)halfCanvasWidth;
+    // float rawY  = (float)(mouseYPosition - halfCanvasHeight) / (float)halfCanvasHeight;
+
+    // switch(Global::mouseMode) {
+    //     case MouseMode::NONE: {
+    //         break;
+    //     }
+
+    //     case MouseMode::ROTATE: {
+    //         int factor = 1;
+
+    //         if (!(lastX == rawX && lastY == rawY)) {
+    //             Arcball arcball{(float)lastX, (float)-lastY, (float)rawX, (float)-rawY};
+    //             float angle = arcball.angle;
+    //             glm::vec3 axis = arcball.axis;
+    //             float angleRadians = 2.0f * angle / Global::Zoom * ArcballFactor;
+    //             glm::mat4 Temp = glm::rotate(glm::mat4(1.0f), angleRadians, axis);
+    //             rotMat = Temp * rotMat;
+    //         } 
+    //         break;
+    //     }
+
+    //     case MouseMode::PAN: {
+    //         std::cout << "Panning" << std::endl;
+    //         break;
+    //     }
+
+    //     case MouseMode::ZOOM: {
+    //         float diff = lastY - rawY;
+    //         float stepPower = m_File->headerInfo.zoomStep * halfCanvasHeight * diff;
+    //         const float limit = std::log(0.1*std::numeric_limits<float>::max()) / std::log(m_File->headerInfo.zoomFactor);
+
+    //         if (std::abs(stepPower) < limit) {
+    //             Global::Zoom *= std::pow(m_File->headerInfo.zoomFactor, stepPower);
+    //             float maxZoom = std::sqrt(std::numeric_limits<float>::max());
+    //             float minZoom = 1 / maxZoom;
+    //             if (Global::Zoom <= minZoom) {
+    //                 Global::Zoom = minZoom;
+    //             } else if (Global::Zoom >= maxZoom) {
+    //                 Global::Zoom = maxZoom;
+    //             }
+    //         }
+    //         break;
+    //     }
+    // }
+
+    // lastMouseX = mouseXPosition;
+    // lastMouseY = mouseYPosition;
+}
+
+void V3dGenerator::refreshPixmap() {
+    static bool shouldZoomIn = true;
+
+    int zoom = 0;
+    if (shouldZoomIn) {
+        zoom = 1;
+        shouldZoomIn = false;
+    } else {
+        zoom = -1;
+        shouldZoomIn = true;
+    }
+
+    QWheelEvent* wheelEvent = new QWheelEvent(
+        QPointF{},            // pos
+        QPointF{},            // globalPos
+        QPoint{},             // pixelDelta
+        QPoint{ zoom, zoom }, // angleDelta
+        0,                    // buttons
+        Qt::ControlModifier,  // modifiers
+        Qt::NoScrollPhase,    // phase
+        false                 // inverted
+    );
+
+    QMouseEvent* mouseEvent = new QMouseEvent(
+        QEvent::MouseButtonRelease,     // type
+        QPointF{ },                     // localPos
+        QPointF{ },                     // globalPos
+        Qt::MiddleButton,               // button
+        0,                              // buttons
+        Qt::NoModifier                  // modifiers
+    );
+
+    ProtectedFunctionCaller::callWheelEvent(m_PageView, wheelEvent);
+    ProtectedFunctionCaller::callMouseReleaseEvent(m_PageView, mouseEvent);
+}
+
+void V3dGenerator::requestPixmapRefresh() {
+    auto elapsedTime = std::chrono::system_clock::now() - m_LastPixmapRefreshTime;
+
+    auto elapsedTimeSeconds = std::chrono::duration_cast<std::chrono::duration<double>>(elapsedTime);
+
+    if (elapsedTimeSeconds > m_MinTimeBetweenRefreshes) {
+        refreshPixmap();
+        m_LastPixmapRefreshTime = std::chrono::system_clock::now();
+    }
+}
+
+void error_callback(int error, const char* description) {
+    std::cout << "GLFW Error[" << error << "]:" << description << std::endl;
 }
 
 int V3dGenerator::m_V3dGeneratorCount{ 0 };
