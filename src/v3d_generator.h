@@ -64,8 +64,6 @@ private:
     void dragModePan    (const glm::vec2& normalizedMousePosition, const glm::vec2& lastNormalizedMousePosition);
     void dragModeRotate (const glm::vec2& normalizedMousePosition, const glm::vec2& lastNormalizedMousePosition);
 
-    void handleMouseMovement(int mouseXPosition, int mouseYPosition);
-
     void requestPixmapRefresh();
 
     void refreshPixmap();

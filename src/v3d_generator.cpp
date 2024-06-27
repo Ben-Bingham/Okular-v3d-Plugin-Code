@@ -40,6 +40,8 @@
 
 #include "Utility/ProtectedFunctionCaller.h"
 
+#include "Utility/Arcball.h"
+
 OKULAR_EXPORT_PLUGIN(V3dGenerator, "libokularGenerator_v3d.json")
 
 V3dGenerator::V3dGenerator(QObject *parent, const QVariantList &args) {
@@ -187,41 +189,6 @@ bool V3dGenerator::doCloseDocument() {
     return true;
 }
 
-// int halfCanvasWidth = 0;
-// int halfCanvasHeight = 0;
-
-// int Width = 0;
-// int Height = 0;
-
-// int lastMouseX = halfCanvasWidth;
-// int lastMouseY = halfCanvasHeight;
-
-struct Arcball {
-    float angle;
-    glm::vec3 axis;
-
-    Arcball(const glm::vec2& lastMousePosition, const glm::vec2& mousePosition) {
-        glm::vec3 v0 = norm(lastMousePosition);
-        glm::vec3 v1 = norm(mousePosition);
-        float Dot = glm::dot(v0, v1);
-        angle = Dot > 1.0f ? 0.0f : (Dot < -1.0f ? glm::pi<float>() : std::acos(Dot));
-
-        axis = glm::normalize(glm::cross(v0, v1));
-    }
-
-    glm::vec3 norm(glm::vec2 v) {
-        float norm = std::hypot(v.x, v.y);
-        if (norm > 1.0) {
-            float denom = 1.0f/norm;
-            v.x *= denom;
-            v.y *= denom;
-        }
-        return glm::vec3{ v.x, v.y, std::sqrt(std::max(1.0f - v.x * v.x - v.y * v.y, 0.0f))};
-    }
-};
-
-float ArcballFactor = 1.0f;
-
 bool V3dGenerator::mouseMoveEvent(QMouseEvent* event) {
     m_MousePosition.x = event->globalPos().x();
     m_MousePosition.y = event->globalPos().y();
@@ -310,65 +277,6 @@ void V3dGenerator::dragModeShift(const glm::vec2& normalizedMousePosition, const
 }
 
 void V3dGenerator::dragModeZoom(const glm::vec2& normalizedMousePosition, const glm::vec2& lastNormalizedMousePosition) {
-
-}
-
-void V3dGenerator::dragModePan(const glm::vec2& normalizedMousePosition, const glm::vec2& lastNormalizedMousePosition) {
-
-}
-
-void V3dGenerator::dragModeRotate(const glm::vec2& normalizedMousePosition, const glm::vec2& lastNormalizedMousePosition) {
-    int factor = 1;
-
-    if (normalizedMousePosition == lastNormalizedMousePosition) { return; }
-
-    Arcball arcball{ { lastNormalizedMousePosition.x, -lastNormalizedMousePosition.y }, { normalizedMousePosition.x, -normalizedMousePosition.y} };
-    float angle = arcball.angle;
-    glm::vec3 axis = arcball.axis;
-
-    float angleRadians = 2.0f * angle / Global::Zoom * ArcballFactor;
-    glm::mat4 temp = glm::rotate(glm::mat4(1.0f), angleRadians, axis);
-    m_RotationMatrix = temp * m_RotationMatrix;
-}
-
-void V3dGenerator::handleMouseMovement(int mouseXPosition, int mouseYPosition) {
-    // if (Global::firstMove) {
-    //     lastMouseX = mouseXPosition;
-    //     lastMouseY = mouseYPosition;
-
-    //     Global::firstMove = false;
-    // }
-
-    // float lastX = (float)(lastMouseX -     halfCanvasWidth)  / (float)halfCanvasWidth;
-    // float lastY = (float)(lastMouseY -     halfCanvasHeight) / (float)halfCanvasHeight;
-    // float rawX  = (float)(mouseXPosition - halfCanvasWidth)  / (float)halfCanvasWidth;
-    // float rawY  = (float)(mouseYPosition - halfCanvasHeight) / (float)halfCanvasHeight;
-
-    // switch(Global::mouseMode) {
-    //     case MouseMode::NONE: {
-    //         break;
-    //     }
-
-    //     case MouseMode::ROTATE: {
-    //         int factor = 1;
-
-    //         if (!(lastX == rawX && lastY == rawY)) {
-    //             Arcball arcball{(float)lastX, (float)-lastY, (float)rawX, (float)-rawY};
-    //             float angle = arcball.angle;
-    //             glm::vec3 axis = arcball.axis;
-    //             float angleRadians = 2.0f * angle / Global::Zoom * ArcballFactor;
-    //             glm::mat4 Temp = glm::rotate(glm::mat4(1.0f), angleRadians, axis);
-    //             rotMat = Temp * rotMat;
-    //         } 
-    //         break;
-    //     }
-
-    //     case MouseMode::PAN: {
-    //         std::cout << "Panning" << std::endl;
-    //         break;
-    //     }
-
-    //     case MouseMode::ZOOM: {
     //         float diff = lastY - rawY;
     //         float stepPower = m_File->headerInfo.zoomStep * halfCanvasHeight * diff;
     //         const float limit = std::log(0.1*std::numeric_limits<float>::max()) / std::log(m_File->headerInfo.zoomFactor);
@@ -383,12 +291,24 @@ void V3dGenerator::handleMouseMovement(int mouseXPosition, int mouseYPosition) {
     //                 Global::Zoom = maxZoom;
     //             }
     //         }
-    //         break;
-    //     }
-    // }
+}
 
-    // lastMouseX = mouseXPosition;
-    // lastMouseY = mouseYPosition;
+void V3dGenerator::dragModePan(const glm::vec2& normalizedMousePosition, const glm::vec2& lastNormalizedMousePosition) {
+
+}
+
+void V3dGenerator::dragModeRotate(const glm::vec2& normalizedMousePosition, const glm::vec2& lastNormalizedMousePosition) {
+    float arcballFactor = 1.0f;
+
+    if (normalizedMousePosition == lastNormalizedMousePosition) { return; }
+
+    Arcball arcball{ { lastNormalizedMousePosition.x, -lastNormalizedMousePosition.y }, { normalizedMousePosition.x, -normalizedMousePosition.y} };
+    float angle = arcball.angle;
+    glm::vec3 axis = arcball.axis;
+
+    float angleRadians = 2.0f * angle / Global::Zoom * arcballFactor;
+    glm::mat4 temp = glm::rotate(glm::mat4(1.0f), angleRadians, axis);
+    m_RotationMatrix = temp * m_RotationMatrix;
 }
 
 void V3dGenerator::refreshPixmap() {
