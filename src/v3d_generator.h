@@ -57,7 +57,6 @@ private:
 
     HeadlessRenderer* m_HeadlessRenderer;
 
-
     std::unique_ptr<std::thread> m_UpdateThread{ nullptr };
 
     QAbstractScrollArea* m_PageView{ nullptr };
@@ -65,13 +64,4 @@ private:
     EventFilter* m_EventFilter{ nullptr };
 
     bool m_ZoomIn{ true };
-};
-
-class EventFilter : public QObject {
-public:
-    EventFilter(QObject* parent, V3dGenerator* generator);
-    ~EventFilter() override = default;
-    bool eventFilter(QObject *object, QEvent *event);
-
-    V3dGenerator* generator;
 };

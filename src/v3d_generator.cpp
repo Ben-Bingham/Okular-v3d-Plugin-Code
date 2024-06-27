@@ -36,6 +36,8 @@
 
 #include <cmath>
 
+#include "Utility/EventFilter.h"
+
 #include "Utility/ProtectedFunctionCaller.h"
 
 OKULAR_EXPORT_PLUGIN(V3dGenerator, "libokularGenerator_v3d.json")
@@ -46,85 +48,8 @@ int halfCanvasHeight = 0;
 // int Width = 0;
 // int Height = 0;
 
-bool firstMove = true;
 
-EventFilter::EventFilter(QObject* parent, V3dGenerator* generator) 
-    : QObject(parent), generator(generator) { }
 
-enum class MouseMode {
-    ROTATE,
-    ZOOM,
-    PAN,
-    NONE
-};
-MouseMode mouseMode;
-
-float Zoom = 1.0f;
-float lastZoom = Zoom;
-
-bool EventFilter::eventFilter(QObject *object, QEvent *event) {
-    if (generator == nullptr) {
-        return false;
-    }
-
-    if (event->type() == QEvent::MouseMove) {
-        QMouseEvent* mouseMove = dynamic_cast<QMouseEvent*>(event);
-
-        if (mouseMove != nullptr) {
-            if (generator->mouseDown) {
-                generator->handleMouseMovement(mouseMove->globalPos().x(), mouseMove->globalPos().y());
-            }
-
-            auto elapsedTime = std::chrono::system_clock::now() - generator->startTime;
-
-            auto elapsedTimeSeconds = std::chrono::duration_cast<std::chrono::duration<double>>(elapsedTime);
-
-            if (generator->mouseDown) {
-                if (elapsedTimeSeconds > generator->timeBetweenRefreshes) {
-                    generator->refreshPixmap();
-                    generator->startTime = std::chrono::system_clock::now();
-                }
-            }
-
-            return true;
-        }
-    } else if (event->type() == QEvent::MouseButtonPress) {
-        QMouseEvent* mousePress = dynamic_cast<QMouseEvent*>(event);
-
-        if ((mousePress->modifiers() & Qt::ControlModifier && mousePress->modifiers() & Qt::ShiftModifier) || (mousePress->modifiers() & Qt::AltModifier && mousePress->modifiers() & Qt::ShiftModifier)) {
-            mouseMode = MouseMode::NONE;
-        } else if (mousePress->modifiers() & Qt::ShiftModifier) {
-            mouseMode = MouseMode::ZOOM;
-        } else if (mousePress->modifiers() & Qt::ControlModifier || mousePress->modifiers() & Qt::AltModifier) {
-            mouseMode = MouseMode::PAN;
-        } else {
-            mouseMode = MouseMode::ROTATE;
-        }
-
-        if (mousePress != nullptr) {
-            if (generator->mouseDown == false) {
-                generator->startTime = std::chrono::system_clock::now();
-            }
-
-            generator->mouseDown = true;
-            return true;
-        } 
-    } else if (event->type() == QEvent::MouseButtonRelease) {
-        QMouseEvent* mouseRelease = dynamic_cast<QMouseEvent*>(event);
-
-        firstMove = true;
-
-        if (mouseRelease != nullptr) {
-            if (generator->mouseDown == true) {
-                generator->refreshPixmap();
-            }
-            generator->mouseDown = false;
-            return true;
-        } 
-    }
-
-    return false;
-}
 
 int lastMouseX = halfCanvasWidth;
 int lastMouseY = halfCanvasHeight;
@@ -159,11 +84,11 @@ glm::mat4 viewMat{ 1.0f };
 float ArcballFactor = 1.0f;
 
 void V3dGenerator::handleMouseMovement(int mouseXPosition, int mouseYPosition) {
-    if (firstMove) {
+    if (Global::firstMove) {
         lastMouseX = mouseXPosition;
         lastMouseY = mouseYPosition;
 
-        firstMove = false;
+        Global::firstMove = false;
     }
 
     float lastX = (float)(lastMouseX -     halfCanvasWidth)  / (float)halfCanvasWidth;
@@ -171,7 +96,7 @@ void V3dGenerator::handleMouseMovement(int mouseXPosition, int mouseYPosition) {
     float rawX  = (float)(mouseXPosition - halfCanvasWidth)  / (float)halfCanvasWidth;
     float rawY  = (float)(mouseYPosition - halfCanvasHeight) / (float)halfCanvasHeight;
 
-    switch(mouseMode) {
+    switch(Global::mouseMode) {
         case MouseMode::NONE: {
             break;
         }
@@ -183,7 +108,7 @@ void V3dGenerator::handleMouseMovement(int mouseXPosition, int mouseYPosition) {
                 Arcball arcball{(float)lastX, (float)-lastY, (float)rawX, (float)-rawY};
                 float angle = arcball.angle;
                 glm::vec3 axis = arcball.axis;
-                float angleRadians = 2.0f * angle / Zoom * ArcballFactor;
+                float angleRadians = 2.0f * angle / Global::Zoom * ArcballFactor;
                 glm::mat4 Temp = glm::rotate(glm::mat4(1.0f), angleRadians, axis);
                 rotMat = Temp * rotMat;
             } 
@@ -201,13 +126,13 @@ void V3dGenerator::handleMouseMovement(int mouseXPosition, int mouseYPosition) {
             const float limit = std::log(0.1*std::numeric_limits<float>::max()) / std::log(m_File->headerInfo.zoomFactor);
 
             if (std::abs(stepPower) < limit) {
-                Zoom *= std::pow(m_File->headerInfo.zoomFactor, stepPower);
+                Global::Zoom *= std::pow(m_File->headerInfo.zoomFactor, stepPower);
                 float maxZoom = std::sqrt(std::numeric_limits<float>::max());
                 float minZoom = 1 / maxZoom;
-                if (Zoom <= minZoom) {
-                    Zoom = minZoom;
-                } else if (Zoom >= maxZoom) {
-                    Zoom = maxZoom;
+                if (Global::Zoom <= minZoom) {
+                    Global::Zoom = minZoom;
+                } else if (Global::Zoom >= maxZoom) {
+                    Global::Zoom = maxZoom;
                 }
             }
             break;
@@ -236,7 +161,7 @@ V3dGenerator::V3dGenerator(QObject *parent, const QVariantList &args) {
         // Width = 0;
         // Height = 0;
 
-        firstMove = true;
+        Global::firstMove = true;
 
         ArcballFactor = 1.0f;
 
@@ -354,9 +279,9 @@ void V3dGenerator::generatePixmap(Okular::PixmapRequest* request) {
     float Height = m_PageView->height();
 
     float Aspect = (float)Width / (float)Height;
-    float xshift = (X / (float)Width + m_File->headerInfo.viewportShift.x * Xfactor) * Zoom;
-    float yshift = (Y / (float)Height + m_File->headerInfo.viewportShift.y * Yfactor) * Zoom;
-    float Zoominv = 1.0f / Zoom;
+    float xshift = (X / (float)Width + m_File->headerInfo.viewportShift.x * Xfactor) * Global::Zoom;
+    float yshift = (Y / (float)Height + m_File->headerInfo.viewportShift.y * Yfactor) * Global::Zoom;
+    float Zoominv = 1.0f / Global::Zoom;
 
     float zMin = m_File->headerInfo.minBound.z;
     float zMax = m_File->headerInfo.maxBound.z;

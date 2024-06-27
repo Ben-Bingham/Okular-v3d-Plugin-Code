@@ -1,3 +1,5 @@
+#pragma once
+
 #include <qabstractscrollarea.h>
 
 class ProtectedFunctionCaller : public QAbstractScrollArea {
