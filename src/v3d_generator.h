@@ -51,6 +51,8 @@ public:
     std::unique_ptr<V3dFile> m_File{ nullptr }; // TODO
 
 private:
+    QAbstractScrollArea* getPageViewWidget();
+
     static int m_V3dGeneratorCount;
 
     HeadlessRenderer* m_HeadlessRenderer;

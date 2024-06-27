@@ -63,21 +63,6 @@ float Zoom = 1.0f;
 float lastZoom = Zoom;
 
 bool EventFilter::eventFilter(QObject *object, QEvent *event) {
-    // if (!generator->haveTakenInitialPause) {
-    //     auto elapsedTime = std::chrono::system_clock::now() - generator->startTime;
-
-    //     auto elapsedTimeSeconds = std::chrono::duration_cast<std::chrono::duration<double>>(elapsedTime);
-
-    //     // std::cout << elapsedTimeSeconds.count() << std::endl;
-
-    //     if (elapsedTimeSeconds >= generator->initialPause) {
-    //         generator->haveTakenInitialPause = true;
-    //     } else {
-    //         return false;
-    //     }
-    // }
-    // std::cout << "Event" << std::endl;
-
     if (generator == nullptr) {
         return false;
     }
@@ -136,39 +121,7 @@ bool EventFilter::eventFilter(QObject *object, QEvent *event) {
             generator->mouseDown = false;
             return true;
         } 
-    } 
-    
-    // else if (event->type() == QEvent::Wheel) {
-    //     QWheelEvent* wheelEvent = dynamic_cast<QWheelEvent*>(event);
-
-
-
-    //     // if (lastZoom != Zoom) {
-    //     //     auto elapsedTime = std::chrono::system_clock::now() - generator->startTime;
-
-    //     //     auto elapsedTimeSeconds = std::chrono::duration_cast<std::chrono::duration<double>>(elapsedTime);
-
-    //     //     if (elapsedTimeSeconds > generator->timeBetweenRefreshes) {
-    //     //         generator->refreshPixmap();
-    //     //         generator->startTime = std::chrono::system_clock::now();
-    //     //     }
-
-    //     //     lastZoom = Zoom;
-    //     // }
-        
-    //     if ((wheelEvent->angleDelta().x() == 1 && wheelEvent->angleDelta().y() == 1) ||
-    //         (wheelEvent->angleDelta().x() == -1 && wheelEvent->angleDelta().y() == -1)) {
-    //         return false;
-    //     } else {
-    //         if (wheelEvent->angleDelta().y() > 0) {
-    //             Zoom *= generator->m_File->headerInfo.zoomFactor;
-    //         } else {
-    //             Zoom /= generator->m_File->headerInfo.zoomFactor;
-    //         }
-
-    //         // return true;
-    //     }
-    // }
+    }
 
     return false;
 }
@@ -289,75 +242,7 @@ V3dGenerator::V3dGenerator(QObject *parent, const QVariantList &args) {
 
         m_HeadlessRenderer = new HeadlessRenderer{ "/home/benjaminb/kde/src/okular/generators/Okular-v3d-Plugin-Code/shaders/" };
 
-        int i = 0;
-        for (QWidget* widget : QApplication::allWidgets()) {
-            bool hasScrollArea = false;
-            bool parentIsWidget = false;
-            bool has8Children = false;
-            bool has1QVboxChild = false;
-            bool has5QFrameChild = false;
-
-            QAbstractScrollArea* scrollArea = dynamic_cast<QAbstractScrollArea*>(widget);
-
-            if (scrollArea != nullptr) {
-                hasScrollArea = true;
-            } else {
-                continue;
-            }
-
-            QWidget* parent = dynamic_cast<QWidget*>(widget->parent());
-
-            if (parent != nullptr) {
-                parentIsWidget = true;
-            } else {
-                continue;
-            }
-
-            if (parent->children().size() == 9) {
-                has8Children = true;
-            } else {
-                continue;
-            }
-
-            int QBoxLayoutCount = 0;
-            for (auto child : parent->children()) {
-                QBoxLayout* qBox = dynamic_cast<QBoxLayout*>(child);
-
-                if (qBox != nullptr) {
-                    QBoxLayoutCount += 1;
-                }
-            }
-
-            if (QBoxLayoutCount == 1) {
-                has1QVboxChild = true;
-            } else {
-                continue;
-            }
-
-            int QFrameCount = 0;
-            for (auto child : parent->children()) {
-                QFrame* qFrame = dynamic_cast<QFrame*>(child);
-
-                if (qFrame != nullptr) {
-                    QFrameCount += 1;
-                }
-            }
-
-            if (QFrameCount == 6) {
-                has5QFrameChild = true;
-            } else {
-                continue;
-            }
-
-            if (hasScrollArea && parentIsWidget && has8Children && has1QVboxChild && has5QFrameChild) {
-                i++;
-
-                if (m_PageView != nullptr) {
-                    std::cout << "ERROR, multiple pageViews found" << std::endl;
-                }
-                m_PageView = dynamic_cast<QAbstractScrollArea*>(widget);
-            }
-        }
+        m_PageView = getPageViewWidget();
 
         m_EventFilter = new EventFilter(m_PageView, this);
         m_PageView->viewport()->installEventFilter(m_EventFilter);
@@ -531,5 +416,80 @@ void V3dGenerator::generatePixmap(Okular::PixmapRequest* request) {
 }
 
 int V3dGenerator::m_V3dGeneratorCount{ 0 };
+
+QAbstractScrollArea* V3dGenerator::getPageViewWidget() {
+    QAbstractScrollArea* pageView;
+
+    for (QWidget* widget : QApplication::allWidgets()) {
+        bool hasScrollArea = false;
+        bool parentIsWidget = false;
+        bool has8Children = false;
+        bool has1QVboxChild = false;
+        bool has5QFrameChild = false;
+
+        QAbstractScrollArea* scrollArea = dynamic_cast<QAbstractScrollArea*>(widget);
+
+        if (scrollArea != nullptr) {
+            hasScrollArea = true;
+        } else {
+            continue;
+        }
+
+        QWidget* parent = dynamic_cast<QWidget*>(widget->parent());
+
+        if (parent != nullptr) {
+            parentIsWidget = true;
+        } else {
+            continue;
+        }
+
+        if (parent->children().size() == 9) {
+            has8Children = true;
+        } else {
+            continue;
+        }
+
+        int QBoxLayoutCount = 0;
+        for (auto child : parent->children()) {
+            QBoxLayout* qBox = dynamic_cast<QBoxLayout*>(child);
+
+            if (qBox != nullptr) {
+                QBoxLayoutCount += 1;
+            }
+        }
+
+        if (QBoxLayoutCount == 1) {
+            has1QVboxChild = true;
+        } else {
+            continue;
+        }
+
+        int QFrameCount = 0;
+        for (auto child : parent->children()) {
+            QFrame* qFrame = dynamic_cast<QFrame*>(child);
+
+            if (qFrame != nullptr) {
+                QFrameCount += 1;
+            }
+        }
+
+        if (QFrameCount == 6) {
+            has5QFrameChild = true;
+        } else {
+            continue;
+        }
+
+        if (hasScrollArea && parentIsWidget && has8Children && has1QVboxChild && has5QFrameChild) {
+            if (pageView != nullptr) {
+                std::cout << "ERROR, multiple pageViews found" << std::endl;
+            }
+
+            pageView = dynamic_cast<QAbstractScrollArea*>(widget);
+        }
+    }
+
+    return pageView;
+}
+
 
 #include "v3d_generator.moc"
