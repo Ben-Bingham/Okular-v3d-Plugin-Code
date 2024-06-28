@@ -24,13 +24,6 @@ V3dFile::V3dFile(const std::string& fileName) {
     xdrFile >> versionNumber;
     xdrFile >> doublePrecisionFlag;
 
-    // std::cout << "==========================================" << std::endl;
-    // UINT data;
-    // while (xdrFile >> data) {
-    //     std::cout << data << std::endl;
-    // }
-    // std::cout << "==========================================" << std::endl;
-
     UINT objectType;
     while (xdrFile >> objectType) {
         switch (objectType) {

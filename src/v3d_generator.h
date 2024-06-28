@@ -54,10 +54,34 @@ private:
     glm::ivec2 m_MousePosition;
     glm::ivec2 m_LastMousePosition;
 
+    float m_Zoom = 1.0f;
+    float m_LastZoom{ };
+
+    float xShift;
+    float yShift;
+
     glm::vec2 m_PageViewDimensions;
 
     glm::mat4 m_RotationMatrix{ 1.0f };
     glm::mat4 m_ViewMatrix{ 1.0f };
+    glm::mat4 m_ProjectionMatrix{ 1.0f };
+
+    float m_H{ };
+    glm::vec3 m_Center{ };
+    glm::vec2 m_Shift{ };
+
+    struct ViewParam {
+        glm::vec3 minValues{ };
+        glm::vec3 maxValues{ };
+    };
+
+    ViewParam m_ViewParam;
+
+    void initProjection();
+    void setProjection();
+
+    void setDimensions(float width, float height, float X, float Y);
+    void updateViewMatrix();
 
     void dragModeShift  (const glm::vec2& normalizedMousePosition, const glm::vec2& lastNormalizedMousePosition);
     void dragModeZoom   (const glm::vec2& normalizedMousePosition, const glm::vec2& lastNormalizedMousePosition);

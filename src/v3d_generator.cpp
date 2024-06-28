@@ -41,6 +41,7 @@
 #include "Utility/ProtectedFunctionCaller.h"
 
 #include "Utility/Arcball.h"
+#include <glm/gtx/string_cast.hpp>
 
 OKULAR_EXPORT_PLUGIN(V3dGenerator, "libokularGenerator_v3d.json")
 
@@ -49,8 +50,6 @@ V3dGenerator::V3dGenerator(QObject *parent, const QVariantList &args) {
     Q_UNUSED(args);
 
     if (m_V3dGeneratorCount == 0) {
-        Global::firstMove = true;
-
         m_HeadlessRenderer = new HeadlessRenderer{ "/home/benjaminb/kde/src/okular/generators/Okular-v3d-Plugin-Code/shaders/" };
 
         m_PageView = getPageViewWidget();
@@ -77,6 +76,7 @@ V3dGenerator::~V3dGenerator() {
 }
 
 void V3dGenerator::generatePixmap(Okular::PixmapRequest* request) {
+
     std::vector<float> vertices = m_File->vertices;
     std::vector<unsigned int> indices = m_File->indices;
 
@@ -84,50 +84,13 @@ void V3dGenerator::generatePixmap(Okular::PixmapRequest* request) {
     int height = request->height();
     VkSubresourceLayout imageSubresourceLayout;
 
+    // Model
     glm::mat4 model = glm::mat4{ 1.0f };
 
-    glm::mat4 Temp{ 1.0f };
+    // Projection
+    setProjection();
 
-    glm::vec3 center{ 0.0f };
-    center.z = 0.5 * (m_File->headerInfo.minBound.z + m_File->headerInfo.maxBound.z);
-    Temp = glm::translate(Temp, center);
-    glm::mat4 cjmatInv = glm::inverse(Temp);
-
-    m_ViewMatrix = m_RotationMatrix * cjmatInv;
-    m_ViewMatrix = Temp * m_ViewMatrix;
-
-    float Xfactor = 1.0f;
-    float Yfactor = 1.0f;
-
-    float X = 0.0f;
-    float Y = 0.0f;
-
-    float Width = m_PageView->width();
-    float Height = m_PageView->height();
-
-    float Aspect = (float)Width / (float)Height;
-    float xshift = (X / (float)Width + m_File->headerInfo.viewportShift.x * Xfactor) * Global::Zoom;
-    float yshift = (Y / (float)Height + m_File->headerInfo.viewportShift.y * Yfactor) * Global::Zoom;
-    float Zoominv = 1.0f / Global::Zoom;
-
-    float zMin = m_File->headerInfo.minBound.z;
-    float zMax = m_File->headerInfo.maxBound.z;
-
-    float H = -std::tan(0.5f * m_File->headerInfo.angleOfView) * zMax; 
-
-    float r = H * Zoominv;
-    float rAspect = r * Aspect;
-    float X0 = 2.0f * rAspect * xshift;
-    float Y0 = 2.0f * r * yshift;
-    float xMin = -rAspect - X0;
-    float xMax = rAspect - X0;
-    float yMin = -r - Y0;
-    float yMax = r - Y0;
-    // TODO issue with loading in when using this projection function
-    // glm::mat4 projection = glm::frustum(xMin, xMax, yMin, yMax, -zMax, -zMin);
-	glm::mat4 projection = glm::perspective(m_File->headerInfo.angleOfView, (float)width / (float)height, 0.1f, 10000.0f);
-
-	glm::mat4 mvp = projection * model * m_ViewMatrix;
+	glm::mat4 mvp = m_ProjectionMatrix * m_ViewMatrix * model;
 
     unsigned char* imageData = m_HeadlessRenderer->render(width, height, &imageSubresourceLayout, vertices, indices, mvp);
 
@@ -169,6 +132,8 @@ void V3dGenerator::generatePixmap(Okular::PixmapRequest* request) {
 
 bool V3dGenerator::loadDocument(const QString &fileName, QVector<Okular::Page *> &pagesVector) {
     m_File = std::make_unique<V3dFile>(fileName.toStdString());
+
+    initProjection();
 
     size_t width = m_File->headerInfo.canvasWidth;
     size_t height = m_File->headerInfo.canvasHeight;
@@ -230,6 +195,7 @@ bool V3dGenerator::mouseMoveEvent(QMouseEvent* event) {
     m_LastMousePosition.x = m_MousePosition.x;
     m_LastMousePosition.y = m_MousePosition.y;
 
+    setProjection();
     requestPixmapRefresh();
 
     return true;
@@ -272,25 +238,85 @@ bool V3dGenerator::mouseButtonReleaseEvent(QMouseEvent* event) {
     return true;
 }
 
+void V3dGenerator::initProjection() {
+    m_H = -std::tan(0.5f * m_File->headerInfo.angleOfView) * m_File->headerInfo.maxBound.z;
+
+    m_Center.x = 0.0f;
+    m_Center.y = 0.0f;
+
+    m_Center.z = 0.5f * (m_File->headerInfo.minBound.z + m_File->headerInfo.maxBound.z);
+
+    m_Zoom = m_File->headerInfo.initialZoom;
+    m_LastZoom = m_File->headerInfo.initialZoom;
+
+    m_ViewParam.minValues.z = m_File->headerInfo.minBound.z;
+    m_ViewParam.maxValues.z = m_File->headerInfo.maxBound.z;
+
+    m_Shift.x = 0.0f;
+    m_Shift.y = 0.0f;
+}
+
+void V3dGenerator::setProjection() {
+    setDimensions(m_PageViewDimensions.x, m_PageViewDimensions.y, m_Shift.x, m_Shift.y);
+
+    m_ProjectionMatrix = glm::frustum(m_ViewParam.minValues.x, m_ViewParam.maxValues.x, m_ViewParam.minValues.y, m_ViewParam.maxValues.y, -m_ViewParam.maxValues.z, -m_ViewParam.minValues.z);
+    
+    updateViewMatrix();
+}
+
+void V3dGenerator::setDimensions(float width, float height, float X, float Y) {
+    float Aspect = width / height;
+
+    xShift = (X / width + m_File->headerInfo.viewportShift.x) * m_Zoom;
+    yShift = (Y / height + m_File->headerInfo.viewportShift.y) * m_Zoom;
+
+    float zoomInv = 1.0f / m_Zoom;
+
+    float r = m_H * zoomInv;
+    float rAspect = r * Aspect;
+
+    float X0 = 2.0f * rAspect * xShift;
+    float Y0 = 2 * r * yShift;
+
+    m_ViewParam.minValues.x = -rAspect-X0;
+    m_ViewParam.maxValues.x = rAspect-X0;
+    m_ViewParam.minValues.y = -r - Y0;
+    m_ViewParam.maxValues.y = r - Y0;
+}
+
+void V3dGenerator::updateViewMatrix() {
+    glm::mat4 temp{ 1.0f };
+    temp = glm::translate(temp, m_Center);
+    glm::mat4 cjmatInv = glm::inverse(temp);
+
+    m_ViewMatrix = m_RotationMatrix * cjmatInv;
+    m_ViewMatrix = temp * m_ViewMatrix;
+
+    m_ViewMatrix = glm::translate(m_ViewMatrix, { m_Center.x, m_Center.y, 0.0f });
+}
+
 void V3dGenerator::dragModeShift(const glm::vec2& normalizedMousePosition, const glm::vec2& lastNormalizedMousePosition) {
 
 }
 
 void V3dGenerator::dragModeZoom(const glm::vec2& normalizedMousePosition, const glm::vec2& lastNormalizedMousePosition) {
-    //         float diff = lastY - rawY;
-    //         float stepPower = m_File->headerInfo.zoomStep * halfCanvasHeight * diff;
-    //         const float limit = std::log(0.1*std::numeric_limits<float>::max()) / std::log(m_File->headerInfo.zoomFactor);
+    float diff = lastNormalizedMousePosition.y - normalizedMousePosition.y;
 
-    //         if (std::abs(stepPower) < limit) {
-    //             Global::Zoom *= std::pow(m_File->headerInfo.zoomFactor, stepPower);
-    //             float maxZoom = std::sqrt(std::numeric_limits<float>::max());
-    //             float minZoom = 1 / maxZoom;
-    //             if (Global::Zoom <= minZoom) {
-    //                 Global::Zoom = minZoom;
-    //             } else if (Global::Zoom >= maxZoom) {
-    //                 Global::Zoom = maxZoom;
-    //             }
-    //         }
+    float stepPower = m_File->headerInfo.zoomStep * (m_PageViewDimensions.y / 2.0f) * diff;
+    const float limit = std::log(0.1f * std::numeric_limits<float>::max()) / std::log(m_File->headerInfo.zoomFactor);
+
+    if (std::abs(stepPower) < limit) {
+        m_Zoom *= std::pow(m_File->headerInfo.zoomFactor, stepPower);
+
+        float maxZoom = std::sqrt(std::numeric_limits<float>::max());
+        float minZoom = 1 / maxZoom;
+
+        if (m_Zoom <= minZoom) {
+            m_Zoom = minZoom;
+        } else if (m_Zoom >= maxZoom) {
+            m_Zoom = maxZoom;
+        }
+    }
 }
 
 void V3dGenerator::dragModePan(const glm::vec2& normalizedMousePosition, const glm::vec2& lastNormalizedMousePosition) {
@@ -306,7 +332,7 @@ void V3dGenerator::dragModeRotate(const glm::vec2& normalizedMousePosition, cons
     float angle = arcball.angle;
     glm::vec3 axis = arcball.axis;
 
-    float angleRadians = 2.0f * angle / Global::Zoom * arcballFactor;
+    float angleRadians = 2.0f * angle / m_Zoom * arcballFactor;
     glm::mat4 temp = glm::rotate(glm::mat4(1.0f), angleRadians, axis);
     m_RotationMatrix = temp * m_RotationMatrix;
 }
@@ -358,14 +384,10 @@ void V3dGenerator::requestPixmapRefresh() {
     }
 }
 
-void error_callback(int error, const char* description) {
-    std::cout << "GLFW Error[" << error << "]:" << description << std::endl;
-}
-
 int V3dGenerator::m_V3dGeneratorCount{ 0 };
 
 QAbstractScrollArea* V3dGenerator::getPageViewWidget() {
-    QAbstractScrollArea* pageView;
+    QAbstractScrollArea* pageView = nullptr;
 
     for (QWidget* widget : QApplication::allWidgets()) {
         bool hasScrollArea = false;
