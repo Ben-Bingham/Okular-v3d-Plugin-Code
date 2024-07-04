@@ -9,6 +9,14 @@
 
 #include "V3dUtil.h"
 
+// #define printObjectTypes
+
+#ifdef printObjectTypes
+    #define PRINT_OBJECT_TYPE(t) std::cout << #t << std::endl
+#else
+    #define PRINT_OBJECT_TYPE(t)
+#endif
+
 // append array b onto array a with offset
 void appendOffset(std::vector<UINT>& a, const std::vector<UINT>& b, size_t offset) {
     size_t n=a.size();
@@ -32,6 +40,7 @@ V3dFile::V3dFile(const std::string& fileName) {
             break;
 
         case ObjectTypes::MATERIAL:
+            PRINT_OBJECT_TYPE(MATERIAL);
             V3dMaterial material;
             xdrFile >> material.diffuse.r;
             xdrFile >> material.diffuse.g;
@@ -56,14 +65,17 @@ V3dFile::V3dFile(const std::string& fileName) {
             break;
 
         case ObjectTypes::TRANSFORM:
+            PRINT_OBJECT_TYPE(TRANSFORM);
             std::cout << "ERROR: No current way to store v3d object: TRANSFORM" << std::endl;
             break;
 
         case ObjectTypes::ELEMENT:
+            PRINT_OBJECT_TYPE(ELEMENT);
             std::cout << "ERROR: No current way to store v3d object: ELEMENT" << std::endl;
             break;
 
         case ObjectTypes::CENTERS:
+            PRINT_OBJECT_TYPE(CENTERS);
             UINT centersLength;
             xdrFile >> centersLength;
 
@@ -80,6 +92,7 @@ V3dFile::V3dFile(const std::string& fileName) {
             break;
 
         case ObjectTypes::HEADER:
+            PRINT_OBJECT_TYPE(HEADER);
             UINT headerEntryCount;
             xdrFile >> headerEntryCount;
 
@@ -179,7 +192,6 @@ V3dFile::V3dFile(const std::string& fileName) {
                         break;
                         
                     case VIBRATE_TIME:
-                        // xdrFile >> headerInfo.vibrateTime;   
                         headerInfo.vibrateTime = readReal(xdrFile, doublePrecisionFlag);    
                         break;    
                 }
@@ -187,82 +199,102 @@ V3dFile::V3dFile(const std::string& fileName) {
             break;
 
         case ObjectTypes::LINE:
+            PRINT_OBJECT_TYPE(LINE);
             m_Objects.push_back(std::move(std::make_unique<V3dLineSegment>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::TRIANGLE:
+            PRINT_OBJECT_TYPE(TRIANGLE);
             m_Objects.push_back(std::move(std::make_unique<V3dStraightTriangle>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::QUAD:
+            PRINT_OBJECT_TYPE(QUAD);
             m_Objects.push_back(std::move(std::make_unique<V3dStraightPlanarQuad>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::CURVE:
+            PRINT_OBJECT_TYPE(CURVE);
             m_Objects.push_back(std::move(std::make_unique<V3dBezierCurve>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::BEZIER_TRIANGLE:
+            PRINT_OBJECT_TYPE(BEZIER_TRIANGLE);
             m_Objects.push_back(std::move(std::make_unique<V3dBezierTriangle>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::BEZIER_PATCH:
+            PRINT_OBJECT_TYPE(BEZIER_PATCH);
             m_Objects.push_back(std::move(std::make_unique<V3dBezierPatch>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::LINE_COLOR:
+            PRINT_OBJECT_TYPE(LINE_COLOR);
             std::cout << "ERROR: No current way to store v3d object: LINE_COLOR" << std::endl;
             break;
 
         case ObjectTypes::TRIANGLE_COLOR:
+            PRINT_OBJECT_TYPE(TRIANGLE_COLOR);
             m_Objects.push_back(std::move(std::make_unique<V3dStraightTriangleWithCornerColors>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::QUAD_COLOR:
+            PRINT_OBJECT_TYPE(QUAD_COLOR);
             m_Objects.push_back(std::move(std::make_unique<V3dStraightPlanarQuadWithCornderColors>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::CURVE_COLOR:
+            PRINT_OBJECT_TYPE(CURVE_COLOR);
             std::cout << "ERROR: No current way to store v3d object: CURVE_COLOR" << std::endl;
             break;
 
         case ObjectTypes::BEZIER_TRIANGLE_COLOR:
+            PRINT_OBJECT_TYPE(BEZIER_TRIANGLE_COLOR);
             m_Objects.push_back(std::move(std::make_unique<V3dBezierTriangleWithCornerColors>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::BEZIER_PATCH_COLOR:
+            PRINT_OBJECT_TYPE(BEZIER_PATCH_COLOR);
             m_Objects.push_back(std::move(std::make_unique<V3dBezierPatchWithCornerColors>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::TRIANGLES:
+            PRINT_OBJECT_TYPE(TRIANGLES);
             m_Objects.push_back(std::move(std::make_unique<V3dTriangleGroup>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::DISK:
+            PRINT_OBJECT_TYPE(DISK);
             m_Objects.push_back(std::move(std::make_unique<V3dDisk>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::CYLINDER:
+            PRINT_OBJECT_TYPE(CYLINDER);
             m_Objects.push_back(std::move(std::make_unique<V3dCylinder>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::TUBE:
+            PRINT_OBJECT_TYPE(TUBE);
             m_Objects.push_back(std::move(std::make_unique<V3dTube>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::SPHERE:
+            PRINT_OBJECT_TYPE(SPHERE);
             m_Objects.push_back(std::move(std::make_unique<V3dSphere>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::HALF_SPHERE:
+            PRINT_OBJECT_TYPE(HALF_SPHERE);
             m_Objects.push_back(std::move(std::make_unique<V3dHemiSphere>(xdrFile, doublePrecisionFlag)));
             break;
 
         case ObjectTypes::ANIMATION:
+            PRINT_OBJECT_TYPE(ANIMATION);
             std::cout << "ERROR: No current way to store v3d object: ANIMATION" << std::endl;
             break;
 
         case ObjectTypes::PIXEL:
+            PRINT_OBJECT_TYPE(PIXEL);
             m_Objects.push_back(std::move(std::make_unique<V3dPixel>(xdrFile, doublePrecisionFlag)));
             break;
         }
@@ -276,5 +308,6 @@ V3dFile::V3dFile(const std::string& fileName) {
 
         appendOffset(indices, ind, vertices.size() / 6);
         vertices.insert(vertices.end(), vert.begin(), vert.end());
+
     }
 }

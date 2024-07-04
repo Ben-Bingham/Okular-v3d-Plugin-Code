@@ -1,11 +1,17 @@
 #version 450
 
-layout (location = 0) in vec3 inNormal;
-layout (location = 1) in vec3 inFragPos;
+layout (location = 0) in vec3 Normal;
+layout (location = 1) in vec3 FragPos;
 
 layout (location = 0) out vec4 outFragColor;
 
 void main() {
+	//vec3 norm = -Normal;
+	//Normal = -Normal;
+
+	//outFragColor = vec4(Normal.xyz, 1.0);
+	//return;
+
     vec3 lightColor = vec3(1.0, 1.0, 1.0);
 	vec3 objectColor = vec3(0.35, 0.67, 0.82);
 	vec3 lightPos = vec3(50.0, 50.0, 50.0);
@@ -18,14 +24,14 @@ void main() {
 	vec3 ambient = ambientStrength * lightColor;
 
 	// Diffuse
-	vec3 norm = normalize(inNormal);
-	vec3 lightDir = normalize(lightPos - inFragPos);
+	vec3 norm = normalize(Normal);
+	vec3 lightDir = normalize(lightPos - FragPos);
 
 	float diff = max(dot(norm, lightDir), 0.0);
 	vec3 diffuse = diff * lightColor;
 
 	// Specular
-	vec3 viewDir = normalize(viewPos - inFragPos);
+	vec3 viewDir = normalize(viewPos - FragPos);
 	vec3 reflectDir = reflect(-lightDir, norm);
 
 	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);

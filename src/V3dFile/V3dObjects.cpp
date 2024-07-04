@@ -35,6 +35,8 @@ V3dBezierTriangle::V3dBezierTriangle(xdr::ixstream& xdrFile, BOOL doublePrecisio
             controlPoints[i].z = readReal(xdrFile, doublePrecision);
         }
 
+        std::cout << "Reading bezierTriangle" << std::endl;
+
         xdrFile >> centerIndex;
         xdrFile >> materialIndex;
     }

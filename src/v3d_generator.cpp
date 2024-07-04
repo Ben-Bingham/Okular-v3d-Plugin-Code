@@ -76,7 +76,6 @@ V3dGenerator::~V3dGenerator() {
 }
 
 void V3dGenerator::generatePixmap(Okular::PixmapRequest* request) {
-
     std::vector<float> vertices = m_File->vertices;
     std::vector<unsigned int> indices = m_File->indices;
 
@@ -459,6 +458,5 @@ QAbstractScrollArea* V3dGenerator::getPageViewWidget() {
 
     return pageView;
 }
-
 
 #include "v3d_generator.moc"
