@@ -10,7 +10,7 @@ This repo stores the code used to build the shared library in the repository: ht
 
 3. Within the okular source code on your system, find the folder titled `generators`, most likly located in: `~/kde/src/okular/generators` or somewhere nearby, and clone this repository into the `generators` folder.
 
-4. Add the line `add_subdirectory(Vertex-Data-Plugin-Code)` (this assumes that `Vertex-Data-Plugin-Code` is the name of the folder with this repository) into the `CMakeLists.txt` file located in the `generators` directory.
+4. Add the line `add_subdirectory(Vertex-Data-Plugin-Code)` (this assumes that `Okular-v3d-Plugin-Code` is the name of the folder with this repository) into the `CMakeLists.txt` file located in the `generators` directory.
 
 5. Install `glfw` and `glew` and make the staticly linked portion of their shared librarys available to your compiler.
 
