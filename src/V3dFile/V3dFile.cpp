@@ -308,6 +308,5 @@ V3dFile::V3dFile(const std::string& fileName) {
 
         appendOffset(indices, ind, vertices.size() / 6);
         vertices.insert(vertices.end(), vert.begin(), vert.end());
-
     }
 }
