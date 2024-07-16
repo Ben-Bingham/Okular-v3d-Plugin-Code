@@ -26,9 +26,16 @@ void appendOffset(std::vector<UINT>& a, const std::vector<UINT>& b, size_t offse
         a[n+i]=b[i]+offset;
 }
 
-V3dFile::V3dFile(const std::string& fileName) {
+V3dFile::V3dFile(const std::string& fileName) { 
     xdr::ixstream xdrFile{ fileName.c_str() };
+    load(xdrFile);
+}
 
+V3dFile::V3dFile(xdr::memixstream& xdrFile) {
+   load(xdrFile);
+}
+
+void V3dFile::load(xdr::ixstream& xdrFile) {
     xdrFile >> versionNumber;
     xdrFile >> doublePrecisionFlag;
 
