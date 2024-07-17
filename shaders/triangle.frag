@@ -6,12 +6,6 @@ layout (location = 1) in vec3 FragPos;
 layout (location = 0) out vec4 outFragColor;
 
 void main() {
-	//vec3 norm = -Normal;
-	//Normal = -Normal;
-
-	//outFragColor = vec4(Normal.xyz, 1.0);
-	//return;
-
     vec3 lightColor = vec3(1.0, 1.0, 1.0);
 	vec3 objectColor = vec3(0.35, 0.67, 0.82);
 	vec3 lightPos = vec3(50.0, 50.0, 50.0);
