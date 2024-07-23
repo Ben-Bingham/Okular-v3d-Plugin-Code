@@ -1,5 +1,5 @@
 remove_definitions(-DTRANSLATION_DOMAIN="okular")
-add_definitions(-DTRANSLATION_DOMAIN="okular_v3d" -DGLFW_INCLUDE_VULKAN -DVULKAN_DEBUG=1)
+add_definitions(-DTRANSLATION_DOMAIN="okular_v3d" -DGLFW_INCLUDE_VULKAN -DVULKAN_DEBUG=1 -DGLM_FORCE_RIGHT_HANDED)
 
 include_directories("src/Rendering" "src/" "src/V3dFile" "dependencies/" "dependencies/VulkanTools" "/usr/include/tirpc" "/home/benjaminb/kde/build/kparts/src/" "/home/benjaminb/kde/build/kparts/")
 

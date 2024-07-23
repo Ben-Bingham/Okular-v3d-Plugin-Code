@@ -258,8 +258,8 @@ void V3dGenerator::initProjection() {
 void V3dGenerator::setProjection() {
     setDimensions(m_PageViewDimensions.x, m_PageViewDimensions.y, m_Shift.x, m_Shift.y);
 
-    m_ProjectionMatrix = glm::frustum(m_ViewParam.minValues.x, m_ViewParam.maxValues.x, m_ViewParam.minValues.y, m_ViewParam.maxValues.y, -m_ViewParam.maxValues.z, -m_ViewParam.minValues.z);
-    
+    m_ProjectionMatrix = glm::frustumRH_ZO(m_ViewParam.minValues.x, m_ViewParam.maxValues.x, m_ViewParam.minValues.y, m_ViewParam.maxValues.y, -m_ViewParam.maxValues.z, -m_ViewParam.minValues.z);
+
     updateViewMatrix();
 }
 
