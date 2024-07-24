@@ -1,12 +1,25 @@
 remove_definitions(-DTRANSLATION_DOMAIN="okular")
 add_definitions(-DTRANSLATION_DOMAIN="okular_v3d" -DGLFW_INCLUDE_VULKAN -DVULKAN_DEBUG=1 -DGLM_FORCE_RIGHT_HANDED)
 
-include_directories("src/Rendering" "src/" "src/V3dFile" "dependencies/" "dependencies/VulkanTools" "/usr/include/tirpc" "/home/benjaminb/kde/build/kparts/src/" "/home/benjaminb/kde/build/kparts/")
+include_directories("src/Rendering" "src/" "src/V3dFile" "dependencies/" "dependencies/VulkanTools" "/usr/include/tirpc" "/home/benjaminb/kde/build/kparts/src/" "/home/benjaminb/kde/build/kparts/" "3rdParty/V3D-Common")
 
 add_compile_options(-fexceptions)
 
 ########### next target ###############
-set(okularGenerator_v3d_SRCS src/v3d_generator.cpp src/Rendering/renderheadless.cpp dependencies/VulkanTools/VulkanTools.cpp src/V3dFile/V3dFile.cpp src/V3dFile/V3dObjects.cpp src/V3dFile/V3dObject.cpp src/V3dFile/V3dUtil.cpp src/Utility/ProtectedFunctionCaller.cpp src/Utility/EventFilter.cpp src/Utility/Arcball.cpp)
+set(
+        okularGenerator_v3d_SRCS src/v3d_generator.cpp 
+        3rdParty/V3D-Common/Rendering/renderheadless.cpp 
+        3rdParty/V3D-Common/3rdParty/VulkanTools/VulkanTools.cpp 
+        3rdParty/V3D-Common/V3dFile/V3dFile.cpp 
+        3rdParty/V3D-Common/V3dFile/V3dObjects.cpp 
+        3rdParty/V3D-Common/V3dFile/V3dObject.cpp 
+        3rdParty/V3D-Common/V3dFile/V3dUtil.cpp 
+        3rdParty/V3D-Common/Utility/ProtectedFunctionCaller.cpp 
+        3rdParty/V3D-Common/Utility/EventFilter.cpp 
+        3rdParty/V3D-Common/Utility/Arcball.cpp
+        3rdParty/V3D-Common/V3dModel.cpp
+        3rdParty/V3D-Common/V3dModelManager.cpp
+)
 
 okular_add_generator(okularGenerator_v3d ${okularGenerator_v3d_SRCS})
 
