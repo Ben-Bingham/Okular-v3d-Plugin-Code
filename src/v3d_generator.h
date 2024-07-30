@@ -39,5 +39,5 @@ public:
     bool doCloseDocument() override;
 
 private:
-    V3dModelManager m_ModelManager{ document() };
+    V3dModelManager m_ModelManager{ document(), "kde/src/okular/generators/Okular-v3d-Embeded-Plugin-Code/3rdParty/V3D-Common/shaders/" };
 };
