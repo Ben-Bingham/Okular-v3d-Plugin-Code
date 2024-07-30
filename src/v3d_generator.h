@@ -39,5 +39,5 @@ public:
     bool doCloseDocument() override;
 
 private:
-    V3dModelManager m_ModelManager;
+    V3dModelManager m_ModelManager{ document() };
 };

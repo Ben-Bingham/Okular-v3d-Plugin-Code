@@ -51,6 +51,8 @@ V3dGenerator::V3dGenerator(QObject *parent, const QVariantList &args) {
 }
 
 void V3dGenerator::generatePixmap(Okular::PixmapRequest* request) {
+    m_ModelManager.CacheRequestSize(request->page()->number(), request->width(), request->height(), request->priority());
+
     QImage image = m_ModelManager.RenderModel(0, 0, (int)request->width(), (int)request->height());
 
     QPixmap* pixmap = new QPixmap(QPixmap::fromImage(image));
@@ -60,6 +62,10 @@ void V3dGenerator::generatePixmap(Okular::PixmapRequest* request) {
 }
 
 bool V3dGenerator::loadDocument(const QString &fileName, QVector<Okular::Page *> &pagesVector) {
+    if (document() != nullptr) {
+        m_ModelManager.SetDocument(document());
+    }
+
     m_ModelManager.AddModel(V3dModel{ fileName.toStdString() }, 0);
 
     glm::vec2 pageSize = m_ModelManager.GetPageSize(0);
