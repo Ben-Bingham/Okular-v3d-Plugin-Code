@@ -52,7 +52,8 @@ V3dGenerator::V3dGenerator(QObject *parent, const QVariantList &args) {
 
 void V3dGenerator::generatePixmap(Okular::PixmapRequest* request) {
     m_ModelManager.CacheRequestSize(request->page()->number(), request->width(), request->height(), request->priority());
-
+    m_ModelManager.CachePage(request->page()->number(), request->page());
+    
     QImage image = m_ModelManager.RenderModel(0, 0, (int)request->width(), (int)request->height());
 
     QPixmap* pixmap = new QPixmap(QPixmap::fromImage(image));
