@@ -68,7 +68,7 @@ bool V3dGenerator::loadDocument(const QString &fileName, QVector<Okular::Page *>
 
     m_ModelManager.AddModel(V3dModel{ fileName.toStdString() }, 0);
 
-    glm::vec2 pageSize = m_ModelManager.GetPageSize(0);
+    glm::vec2 pageSize = m_ModelManager.GetCanvasSize(0);
 
     while (!(pageSize.x > 600)) {
         pageSize.x *= 2;
